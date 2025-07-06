@@ -1,0 +1,22 @@
+{
+  "name": "smart-task-manager",
+  "version": "1.0.0",
+  "description": "Smart Task Manager - Full Stack Application",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build": "cd client && npm run build",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "start": "concurrently \"npm run start:client\" \"npm run start:server\"",
+    "start:client": "cd client && npm run preview",
+    "start:server": "cd server && npm start"
+  },
+  "keywords": ["task-manager", "react", "nodejs", "express"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
