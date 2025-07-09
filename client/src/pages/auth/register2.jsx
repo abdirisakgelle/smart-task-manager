@@ -6,7 +6,7 @@ import useDarkmode from "@/hooks/useDarkMode";
 
 // image import
 import VectorsImage from "@/assets/images/vectors-image/vectors-1.svg";
-import Logo from "@/assets/images/logo/logo-c.svg";
+import Logo from "@/assets/images/logo/logo-c-white.svg";
 const register2 = () => {
   const [isDark] = useDarkmode();
   return (

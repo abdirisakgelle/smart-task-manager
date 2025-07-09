@@ -6,7 +6,7 @@ import InvoiceTable from "./InvoiceTable";
 import userDarkMode from "@/hooks/useDarkMode";
 
 // import images
-import MainLogo from "@/assets/images/logo/logo-c.svg";
+import MainLogo from "@/assets/images/logo/logo-c-white.svg";
 import LogoWhite from "@/assets/images/logo/logo-white.svg";
 
 const InvoicePreviewPage = () => {

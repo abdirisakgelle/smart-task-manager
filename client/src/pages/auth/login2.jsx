@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import LoginForm from "./common/login-form";
 import Social from "./common/social";
 import useDarkMode from "@/hooks/useDarkMode";
-import Logo from "@/assets/images/logo/logo-c.svg";
+import Logo from "@/assets/images/logo/logo-c-white.svg";
 import VectorsImage from "@/assets/images/vectors-image/vectors-1.svg";
 
 const login2 = () => {

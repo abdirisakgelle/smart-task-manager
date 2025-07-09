@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import ForgotPass from "./common/forgot-pass";
 import useDarkMode from "@/hooks/useDarkMode";
 import VectorsImage from "@/assets/images/vectors-image/vectors-1.svg";
-import Logo from "@/assets/images/logo/logo-c.svg";
+import Logo from "@/assets/images/logo/logo-c-white.svg";
 const ForgotPass2 = () => {
   const [isDark] = useDarkMode();
   return (
