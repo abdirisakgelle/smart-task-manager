@@ -26,4 +26,10 @@ export default defineConfig({
     react(),
     //reactRefresh(),
   ],
+
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
 });

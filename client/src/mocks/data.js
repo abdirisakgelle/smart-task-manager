@@ -1,372 +1,79 @@
 export const menuItems = [
   {
     isHeadr: true,
-    title: "menu",
+    title: "Main",
   },
-
   {
     title: "Dashboard",
-    icon: "ph:house",
-    isHide: true,
-    child: [
-      {
-        childtitle: "Default",
-        childlink: "dashboard",
-      },
-      {
-        childtitle: "Ecommerce Dashboard",
-        childlink: "ecommerce",
-      },
-      {
-        childtitle: " CRM Dashbaord",
-        childlink: "",
-        badge: "soon",
-      },
-      {
-        childtitle: "Social",
-        childlink: "",
-        badge: "soon",
-      },
-    ],
+    icon: "ph:clock",
+    link: "/dashboard",
   },
-
   {
     isHeadr: true,
-    title: "apps",
+    title: "Call Center",
   },
-
   {
-    title: "calendar",
-    isHide: true,
+    title: "New Tickets",
+    icon: "ph:headphones",
+    link: "/tickets",
+  },
+  {
+    title: "Follow-Ups",
+    icon: "ph:clock-counter-clockwise",
+    link: "/follow-ups",
+  },
+  {
+    title: "Supervisor Reviews",
+    icon: "ph:chat-centered-text",
+    link: "/supervisor-reviews",
+  },
+  {
+    isHeadr: true,
+    title: "Content Production",
+  },
+  {
+    title: "New Creative Ideas",
+    icon: "ph:lightbulb",
+    link: "/new-creative-ideas",
+  },
+  {
+    title: "Content Management",
+    icon: "ph:file-text",
+    link: "/content-management",
+  },
+  {
+    title: "Calendar",
     icon: "ph:calendar",
-    link: "calendar",
+    link: "/calendar",
   },
   {
-    title: "Chat",
-    isHide: true,
-    icon: "ph:chats",
-    link: "chats",
-  },
-
-  {
-    title: "boards",
-    isHide: true,
-    icon: "ph:clipboard-text",
-    link: "boards",
-  },
-
-  {
-    title: "Todo",
-    isHide: true,
-    icon: "ph:list-dashes",
-    link: "todos",
-  },
-
-  {
-    isHeadr: true,
-    title: "Pages",
+    title: "Production Workflow",
+    icon: "ph:wrench",
+    link: "/production-workflow",
   },
   {
-    title: "Authentication",
-    icon: "ph:lock-key",
-    link: "#",
-    child: [
-      {
-        childtitle: "Sign in",
-        childlink: "#",
-        submenu: [
-          {
-            subChildTitle: "Sign in 1",
-            subChildLink: "/",
-          },
-          {
-            subChildTitle: "Sign in 2",
-            subChildLink: "/login2",
-          },
-        ],
-      },
-      {
-        childtitle: "Sign Up",
-        childlink: "#",
-        submenu: [
-          {
-            subChildTitle: "Sign Up 1",
-            subChildLink: "/register",
-          },
-          {
-            subChildTitle: "Sign Up 2",
-            subChildLink: "/register2",
-          },
-        ],
-      },
-
-      {
-        childtitle: "Forget Password",
-        childlink: "#",
-        submenu: [
-          {
-            subChildTitle: "Forget Password 1",
-            subChildLink: "/forgot-password",
-          },
-          {
-            subChildTitle: "Forget Password 2",
-            subChildLink: "/forgot-password2",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: "pages",
-    icon: "ph:codesandbox-logo",
-    link: "#",
-    isHide: true,
-    child: [
-      {
-        childtitle: "Invoice",
-        childlink: "invoice",
-      },
-      {
-        childtitle: "Add Invoice",
-        childlink: "add-invoice",
-      },
-      {
-        childtitle: "Edit Invoice",
-        childlink: "edit-invoice",
-      },
-      {
-        childtitle: "invoice preview",
-        childlink: "invoice-preview",
-      },
-      {
-        childtitle: "Pricing",
-        childlink: "pricing",
-      },
-
-      {
-        childtitle: "FAQ",
-        childlink: "faq",
-      },
-
-      {
-        childtitle: "Blank page",
-        childlink: "blank-page",
-      },
-      {
-        childtitle: "Prfoile",
-        childlink: "profile",
-      },
-
-      {
-        childtitle: "404 page",
-        childlink: "/404",
-      },
-    ],
+    title: "Social Media",
+    icon: "ph:share-network",
+    link: "/social-media",
   },
   {
     isHeadr: true,
-    title: "Elements",
-  },
-
-  {
-    title: "Components",
-    icon: "ph:book-open",
-    link: "#",
-    child: [
-      {
-        childtitle: "Accordion",
-        childlink: "accordion",
-      },
-      {
-        childtitle: "Tab",
-        childlink: "tab",
-      },
-      {
-        childtitle: "Dropdown",
-        childlink: "dropdown",
-      },
-      {
-        childtitle: "Modal",
-        childlink: "modal",
-      },
-
-      {
-        childtitle: "Timeline",
-        childlink: "timeline",
-      },
-      {
-        childtitle: "Pagination",
-        childlink: "pagination",
-      },
-      {
-        childtitle: "Video",
-        childlink: "video",
-      },
-    ],
+    title: "Analytics & Reports",
   },
   {
-    title: "Elements",
-    icon: "ph:diamonds-four",
-    link: "#",
-    child: [
-      {
-        childtitle: "avatar",
-        childlink: "avatar",
-      },
-      {
-        childtitle: "Alert",
-        childlink: "alert",
-      },
-      {
-        childtitle: "Button",
-        childlink: "button",
-      },
-      {
-        childtitle: "Badges",
-        childlink: "badges",
-      },
-      {
-        childtitle: "Card",
-        childlink: "card",
-      },
-      {
-        childtitle: "progress",
-        childlink: "progress",
-      },
-
-      {
-        childtitle: "spinier",
-        childlink: "spinier",
-      },
-      {
-        childtitle: "Tooltip",
-        childlink: "tooltip",
-      },
-    ],
-  },
-  {
-    title: "Forms",
-    icon: "ph:clipboard",
-    link: "#",
-    child: [
-      {
-        childtitle: "Text Field",
-        childlink: "textfield",
-      },
-      {
-        childtitle: "Input Group",
-        childlink: "input-group",
-      },
-
-      {
-        childtitle: "Form validation",
-        childlink: "form-validation",
-      },
-
-      {
-        childtitle: "Input mask",
-        childlink: "input-mask",
-      },
-      {
-        childtitle: "File input",
-        childlink: "file-input",
-      },
-      {
-        childtitle: "Form repeater",
-        childlink: "form-repeater",
-      },
-      {
-        childtitle: "Textarea",
-        childlink: "textarea",
-      },
-      {
-        childtitle: "Checkbox",
-        childlink: "checkbox",
-      },
-      {
-        childtitle: "Radio",
-        childlink: "radio",
-      },
-      {
-        childtitle: "Switch",
-        childlink: "switch",
-      },
-      {
-        childtitle: "Select",
-        childlink: "select",
-      },
-      {
-        childtitle: "React Select",
-        childlink: "react-select",
-      },
-      {
-        childtitle: "Date time picker",
-        childlink: "date-time-picker",
-      },
-    ],
-  },
-  {
-    title: "Table",
-    icon: "ph:table",
-    link: "#",
-    child: [
-      {
-        childtitle: "Basic Table",
-        childlink: "table-basic",
-      },
-      {
-        childtitle: "Advanced Table ",
-        childlink: "react_table",
-      },
-    ],
-  },
-  {
-    title: "Chart",
+    title: "Ticket Analytics",
     icon: "ph:chart-pie-slice",
-    link: "#",
-    child: [
-      {
-        childtitle: "Apex chart",
-        childlink: "appex-chart",
-        // submenu: [
-        //   {
-        //     subChildTitle: "line chart",
-        //     subChildLink: "appex-chart",
-        //   },
-        //   {
-        //     subChildTitle: "area chart",
-        //     subChildLink: "appex-chart",
-        //   },
-        //   {
-        //     subChildTitle: "column chart",
-        //     subChildLink: "appex-chart",
-        //   },
-        //   {
-        //     subChildTitle: "bar chart",
-        //     subChildLink: "appex-chart",
-        //   },
-        // ],
-      },
-      {
-        childtitle: "Chart js",
-        childlink: "chartjs",
-      },
-
-      {
-        childtitle: "Recharts",
-        childlink: "recharts",
-      },
-    ],
+    link: "/ticket-analytics",
   },
   {
-    title: "Map",
-    icon: "ph:map-trifold",
-    link: "map",
+    title: "Content Analytics",
+    icon: "ph:chart-bar",
+    link: "/content-analytics",
   },
   {
-    title: "Icons",
-    icon: "ph:mask-happy",
-    link: "icons",
+    title: "Employee Analytics",
+    icon: "ph:user",
+    link: "/employee-analytics",
   },
 ];
 

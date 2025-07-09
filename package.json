@@ -13,10 +13,18 @@
     "start:client": "cd client && npm run preview",
     "start:server": "cd server && npm start"
   },
-  "keywords": ["task-manager", "react", "nodejs", "express"],
+  "keywords": [
+    "task-manager",
+    "react",
+    "nodejs",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "moment-timezone": "^0.6.0"
   }
-} 
+}

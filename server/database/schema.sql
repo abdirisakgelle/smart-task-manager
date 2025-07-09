@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS follow_ups (
   ticket_id INT NOT NULL,
   follow_up_agent_id INT NOT NULL,
   follow_up_date DATE NOT NULL,
+  issue_solved BOOLEAN,
   customer_location VARCHAR(255),
   feedback_rating INT,
   satisfied BOOLEAN,

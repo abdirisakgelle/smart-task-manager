@@ -10,7 +10,7 @@
 }
 
 .card-header {
-  @apply flex items-center justify-between px-5 pt-4;
+  @apply flex items-center justify-between px-5 pt-4 border-b-2 border-[#D2232A] bg-white dark:bg-gray-900;
 }
 .card-header:not(.no-border) {
   @apply border-b border-indigo-50 dark:border-gray-700 pb-4;
@@ -24,4 +24,8 @@
   .card {
     @apply h-min;
   }
+}
+
+.card-badge, .card-highlight {
+  @apply bg-[#D2232A] text-white rounded px-2 py-1 text-xs font-semibold;
 }

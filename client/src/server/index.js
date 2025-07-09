@@ -182,7 +182,60 @@ createServer({
     });
   },
   routes() {
-    //this.namespace = "api";
+    this.namespace = "api";
+
+    // this.get("/tickets", () => {
+    //   return [
+    //     {
+    //       ticket_id: 1,
+    //       created_at: "2025-07-02 14:41:47",
+    //       customer_phone: "252612300001",
+    //       communication_channel: "Phone",
+    //       device_type: "Mobile",
+    //       issue_type: "Login",
+    //       issue_description: "User cannot log in",
+    //       agent_id: 3,
+    //       resolution_status: "Resolved",
+    //       end_time: "2025-07-02 16:41:47"
+    //     },
+    //     {
+    //       ticket_id: 2,
+    //       created_at: "2025-07-02 14:41:47",
+    //       customer_phone: "252612300002",
+    //       communication_channel: "Email",
+    //       device_type: "Laptop",
+    //       issue_type: "Payment",
+    //       issue_description: "Payment not processed",
+    //       agent_id: 3,
+    //       resolution_status: "In Progress",
+    //       end_time: null
+    //     },
+    //     {
+    //       ticket_id: 3,
+    //       created_at: "2025-07-02 11:42:30",
+    //       customer_phone: "0612000029",
+    //       communication_channel: "Phone",
+    //       device_type: "Laptop",
+    //       issue_type: "Billing",
+    //       issue_description: "cabasho IPTV",
+    //       agent_id: 2,
+    //       resolution_status: "done",
+    //       end_time: "2025-07-02 11:42:54"
+    //     },
+    //     {
+    //       ticket_id: 4,
+    //       created_at: "2025-07-02 11:46:23",
+    //       customer_phone: "12131242",
+    //       communication_channel: "Phone",
+    //       device_type: "Laptop",
+    //       issue_type: "Billing",
+    //       issue_description: "cabasho",
+    //       agent_id: 2,
+    //       resolution_status: "done",
+    //       end_time: "2025-07-02 11:47:03"
+    //     }
+    //   ];
+    // });
 
     todoServerConfig(this);
     boardServerConfig(this);
@@ -190,6 +243,9 @@ createServer({
     contactServerConfig(this);
     calendarServerConfig(this);
     this.timing = 500;
-    //this.passthrough();
+    
+    // Passthrough for real backend API calls
+    this.passthrough('http://localhost:3000/**');
+    this.passthrough('http://127.0.0.1:3000/**');
   },
 });

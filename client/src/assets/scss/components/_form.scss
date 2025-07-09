@@ -59,3 +59,10 @@
 .flatpickr-day.endRange.nextMonthDay {
   @apply bg-gray-900 border-gray-500;
 }
+
+input:focus, textarea:focus, select:focus {
+  @apply border-[#D2232A] ring-2 ring-[#D2232A] ring-opacity-30;
+}
+.form-primary-action {
+  @apply bg-[#D2232A] text-white border-[#D2232A] hover:bg-[#b71c22];
+}

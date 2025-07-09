@@ -3,10 +3,9 @@ import useDarkMode from "@/hooks/useDarkMode";
 import { Link } from "react-router-dom";
 import useWidth from "@/hooks/useWidth";
 
-import MainLogo from "@/assets/images/logo/logo.svg";
-import LogoWhite from "@/assets/images/logo/logo-white.svg";
-import MobileLogo from "@/assets/images/logo/logo-c.svg";
-import MobileLogoWhite from "@/assets/images/logo/logo-c-white.svg";
+import NasiyeLogoRed from "@/assets/images/logo/nasiye.png";
+import NasiyeLogoWhite from "@/assets/images/logo/nasiye.png";
+
 const Logo = () => {
   const [isDark] = useDarkMode();
   const { width, breakpoints } = useWidth();
@@ -14,11 +13,11 @@ const Logo = () => {
   return (
     <div>
       <Link to="/dashboard">
-        {width >= breakpoints.xl ? (
-          <img src={isDark ? LogoWhite : MainLogo} alt="logo-1" />
-        ) : (
-          <img src={isDark ? MobileLogoWhite : MobileLogo} alt="logo-2" />
-        )}
+        <img
+          src={isDark ? NasiyeLogoWhite : NasiyeLogoRed}
+          alt="Nasiye Logo"
+          style={{ height: 36, maxWidth: 160 }}
+        />
       </Link>
     </div>
   );

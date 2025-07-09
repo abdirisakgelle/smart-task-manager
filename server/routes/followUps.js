@@ -2,6 +2,13 @@ const express = require('express');
 const router = express.Router();
 const followUpsController = require('../controllers/followUpsController');
 
+// Get eligible tickets for follow-up
+router.get('/eligible', followUpsController.getEligibleFollowUps);
+
+// Get reopened tickets
+router.get('/reopened', followUpsController.getReopenedTickets);
+router.get('/reopened/agent/:agent_id', followUpsController.getReopenedTicketsByAgent);
+
 // Filtered endpoints
 router.get('/agent/:follow_up_agent_id', followUpsController.getFollowUpsByAgent);
 router.get('/ticket/:ticket_id', followUpsController.getFollowUpsByTicket);

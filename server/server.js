@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const autoInsertReviewsMiddleware = require('./middleware/autoInsertReviews');
 const app = express();
 const PORT = 3000;
 
@@ -11,6 +12,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Apply auto-insert middleware
+app.use(autoInsertReviewsMiddleware);
 
 // Import routes
 const usersRoutes = require('./routes/users');
@@ -41,6 +45,13 @@ app.get('/', (req, res) => {
   res.send('Hello from backend!');
 });
 
+// Import and run the auto-insert scheduler
+const { autoInsertTicketsToReviews } = require('./scripts/autoInsertScheduler');
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  
+  // Set up periodic auto-insert check (every hour)
+  setInterval(autoInsertTicketsToReviews, 60 * 60 * 1000); // 1 hour
+  console.log('Auto-insert scheduler started (runs every hour)');
 }); 

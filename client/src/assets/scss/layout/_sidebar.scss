@@ -1,7 +1,12 @@
 .sidebar-wrapper {
   @apply fixed ltr:left-0 rtl:right-0 top-0   h-screen   z-[999];
+  background: #D2232A !important;
   transition: width 0.2s cubic-bezier(0.39, 0.575, 0.565, 1);
   will-change: width;
+}
+
+.dark .sidebar-wrapper {
+  background: #D2232A !important;
 }
 
 .nav-shadow {
@@ -112,31 +117,31 @@
 
 // active menu
 .menu-link {
-  @apply after:absolute after:left-0 after:top-0 after:h-0 after:w-1 after:bg-indigo-500 relative after:transition-all after:duration-200;
+  @apply after:absolute after:left-0 after:top-0 after:h-0 after:w-1 after:bg-[#D2232A] relative after:transition-all after:duration-200;
   &.parent_active {
     @apply after:h-full;
   }
 }
 .item-has-children {
   .parent_active {
-    @apply bg-indigo-100 dark:bg-gray-400 dark:bg-opacity-[15%];
+    @apply bg-[#FDE8E9] dark:bg-gray-400 dark:bg-opacity-[15%];
     .icon-box,
     .menu-icon,
     .text-box {
-      @apply text-indigo-500 dark:text-gray-300;
+      @apply text-[#D2232A] dark:text-gray-300;
     }
     .menu-arrow {
-      @apply text-indigo-500 dark:text-gray-300;
+      @apply text-[#D2232A] dark:text-gray-300;
     }
   }
 }
 .menu-item-active {
   .menu-link {
-    @apply bg-indigo-100 dark:bg-gray-400 dark:bg-opacity-[15%] after:h-full;
+    @apply bg-[#FDE8E9] dark:bg-gray-400 dark:bg-opacity-[15%] after:h-full;
     .icon-box,
     .menu-icon,
     .text-box {
-      @apply text-indigo-500 dark:text-gray-300;
+      @apply text-[#D2232A] dark:text-gray-300;
     }
   }
   .menu-badge {

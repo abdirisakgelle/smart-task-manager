@@ -84,6 +84,9 @@ const BoardsPage = lazy(() => import("./pages/app/boards"));
 import Layout from "./layout/Layout";
 import Loading from "@/components/Loading";
 import AuthLayout from "./layout/AuthLayout";
+const NewTicketsPage = lazy(() => import("./pages/tickets"));
+const SupervisorReviewsPage = lazy(() => import("./pages/supervisor-reviews"));
+const FollowUpsPage = lazy(() => import("./pages/follow-ups"));
 
 function App() {
   return (
@@ -100,7 +103,12 @@ function App() {
           <Route path="chats" element={<ChatPage />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="boards" element={<BoardsPage />} />
-          {/* <Route path="calender" element={<CalenderPage />} /> */}
+          <Route path="tickets" element={<NewTicketsPage />} />
+          <Route path="tickets/new" element={<div>Create Ticket Page (to implement)</div>} />
+          <Route path="tickets/:ticket_id" element={<div>View Ticket Page (to implement)</div>} />
+          <Route path="tickets/edit/:ticket_id" element={<div>Edit Ticket Page (to implement)</div>} />
+          <Route path="supervisor-reviews" element={<SupervisorReviewsPage />} />
+          <Route path="follow-ups" element={<FollowUpsPage />} />
           {/* Components pages */}
           <Route path="button" element={<Button />} />
           <Route path="dropdown" element={<Dropdown />} />
