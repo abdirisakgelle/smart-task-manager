@@ -6,7 +6,7 @@ const Footer = ({ className = "custom-class" }) => {
       <div className="site-footer px-6 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 py-4">
         <div className="grid md:grid-cols-2 grid-cols-1 md:gap-5">
           <div className="text-center ltr:md:text-start rtl:md:text-right text-sm">
-            COPYRIGHT &copy; 2022 DashSpace, All rights Reserved
+            COPYRIGHT &copy; {new Date().getFullYear()} Nasiye Smart, All rights Reserved
           </div>
           <div className="ltr:md:text-right rtl:md:text-end text-center text-sm">
             Hand-crafted & Made by{" "}

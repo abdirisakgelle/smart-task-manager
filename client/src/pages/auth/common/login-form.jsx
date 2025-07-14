@@ -34,32 +34,44 @@ const LoginForm = () => {
     mode: "all",
   });
   const navigate = useNavigate();
+  
   const onSubmit = async (data) => {
     console.log("onSubmit called", data); // Debug: confirm form submission
     try {
       console.log("Calling login mutation");
       const response = await login({ username: data.username, password: data.password });
       console.log("Login mutation response", response); // Debug: confirm mutation result
+      
       if (response.error) {
-        throw new Error(response.error.data?.error || response.error.message || 'Login failed');
+        const errorMessage = response.error.data?.error || 
+                           response.error.message || 
+                           'Login failed. Please check your credentials.';
+        throw new Error(errorMessage);
       }
-      if (response.data.error) {
-        throw new Error(response.data.error);
+      
+      if (!response.data || !response.data.token) {
+        throw new Error("Invalid response from server");
       }
-      if (!response.data.token) {
-        throw new Error("Invalid credentials");
-      }
+      
       // Store token and user data
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       dispatch(setUser(response.data.user));
+      
+      // Show success message
+      toast.success(`Welcome back, ${response.data.user.username}!`);
+      
+      // Navigate to dashboard
       navigate("/dashboard");
-      toast.success("Login Successful");
+      
     } catch (error) {
-      toast.error(error.message || 'Login failed');
+      console.error("Login error:", error);
+      toast.error(error.message || 'Login failed. Please try again.');
     }
   };
+  
   const [checked, setChecked] = useState(false);
+  
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
       <InputGroup
@@ -102,6 +114,18 @@ const LoginForm = () => {
         className="btn btn-primary block w-full text-center "
         isLoading={isLoading}
       />
+      
+      {/* Demo credentials info */}
+      <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">
+          Demo Credentials:
+        </p>
+        <div className="text-xs text-blue-500 dark:text-blue-300 space-y-1">
+          <p>Admin: admin / admin123</p>
+          <p>User: user / user123</p>
+          <p>Manager: manager / manager123</p>
+        </div>
+      </div>
     </form>
   );
 };

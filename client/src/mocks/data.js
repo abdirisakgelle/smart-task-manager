@@ -5,8 +5,17 @@ export const menuItems = [
   },
   {
     title: "Dashboard",
-    icon: "ph:clock",
+    icon: "SquaresFour",
     link: "/dashboard",
+  },
+  {
+    isHeadr: true,
+    title: "Administration",
+  },
+  {
+    title: "Users Management",
+    icon: "UsersThree",
+    link: "/users",
   },
   {
     isHeadr: true,
@@ -14,17 +23,17 @@ export const menuItems = [
   },
   {
     title: "New Tickets",
-    icon: "ph:headphones",
+    icon: "Ticket",
     link: "/tickets",
   },
   {
     title: "Follow-Ups",
-    icon: "ph:clock-counter-clockwise",
+    icon: "ArrowClockwise",
     link: "/follow-ups",
   },
   {
     title: "Supervisor Reviews",
-    icon: "ph:chat-centered-text",
+    icon: "ClipboardText",
     link: "/supervisor-reviews",
   },
   {
@@ -33,27 +42,27 @@ export const menuItems = [
   },
   {
     title: "New Creative Ideas",
-    icon: "ph:lightbulb",
+    icon: "LightbulbFilament",
     link: "/new-creative-ideas",
   },
   {
     title: "Content Management",
-    icon: "ph:file-text",
+    icon: "Folders",
     link: "/content-management",
   },
   {
     title: "Calendar",
-    icon: "ph:calendar",
+    icon: "CalendarBlank",
     link: "/calendar",
   },
   {
     title: "Production Workflow",
-    icon: "ph:wrench",
+    icon: "ArrowsLeftRight",
     link: "/production-workflow",
   },
   {
     title: "Social Media",
-    icon: "ph:share-network",
+    icon: "ShareNetwork",
     link: "/social-media",
   },
   {
@@ -62,17 +71,17 @@ export const menuItems = [
   },
   {
     title: "Ticket Analytics",
-    icon: "ph:chart-pie-slice",
+    icon: "ChartLineUp",
     link: "/ticket-analytics",
   },
   {
     title: "Content Analytics",
-    icon: "ph:chart-bar",
+    icon: "ChartBar",
     link: "/content-analytics",
   },
   {
     title: "Employee Analytics",
-    icon: "ph:user",
+    icon: "ChartDonut",
     link: "/employee-analytics",
   },
 ];

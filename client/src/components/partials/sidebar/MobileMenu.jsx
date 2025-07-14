@@ -47,7 +47,7 @@ const MobileMenu = ({ className = "custom-class" }) => {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  DashSpace
+                  Nasiye Smart
                 </h1>
               </div>
             </div>

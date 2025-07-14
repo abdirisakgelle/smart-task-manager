@@ -201,8 +201,8 @@ exports.getEligibleFollowUps = async (req, res) => {
   try {
     // Optional: support for custom date range via query params
     const days = req.query.days ? parseInt(req.query.days, 10) : 7;
-    const since = `DATE_SUB(NOW(), INTERVAL ${days} DAY)`;
-    // Query: tickets from last X days, not in follow_ups, join supervisor_reviews if exists
+    
+    // Use a more efficient query with EXISTS and proper indexing
     const [rows] = await pool.query(`
       SELECT 
         t.ticket_id,
@@ -214,13 +214,28 @@ exports.getEligibleFollowUps = async (req, res) => {
         sr.review_date,
         sr.issue_status AS supervisor_status
       FROM tickets t
-      LEFT JOIN supervisor_reviews sr ON t.ticket_id = sr.ticket_id AND sr.review_date >= ${since}
-      WHERE (t.created_at >= ${since} OR sr.review_date >= ${since})
-        AND t.ticket_id NOT IN (SELECT ticket_id FROM follow_ups)
-      ORDER BY t.created_at DESC
-    `);
+      LEFT JOIN supervisor_reviews sr ON t.ticket_id = sr.ticket_id 
+        AND sr.review_date >= DATE_SUB(NOW(), INTERVAL ? DAY)
+      WHERE (
+        t.created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+        OR sr.review_date >= DATE_SUB(NOW(), INTERVAL ? DAY)
+      )
+      AND NOT EXISTS (
+        SELECT 1 
+        FROM follow_ups f 
+        WHERE f.ticket_id = t.ticket_id
+      )
+      ORDER BY 
+        CASE 
+          WHEN sr.review_date IS NOT NULL THEN sr.review_date
+          ELSE t.created_at 
+        END DESC
+      LIMIT 100
+    `, [days, days, days]);
+
     res.json(rows);
   } catch (err) {
+    console.error('Error in getEligibleFollowUps:', err);
     res.status(500).json({ error: err.message });
   }
 };

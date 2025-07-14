@@ -40,7 +40,7 @@ const Navmenu = ({ menus }) => {
         }
       }
     });
-    document.title = `DashSpace  | ${locationName}`;
+    document.title = `Nasiye Smart | ${locationName}`;
 
     setActiveSubmenu(submenuIndex);
     if (mobileMenu) {

@@ -104,6 +104,9 @@ const Dashboard = () => {
   const [loadingIssues, setLoadingIssues] = useState(true);
   const [ticketResolution, setTicketResolution] = useState([]);
   const [loadingResolution, setLoadingResolution] = useState(true);
+  // State for today's production ideas
+  const [ideasToday, setIdeasToday] = useState([]);
+  const [loadingIdeas, setLoadingIdeas] = useState(true);
 
   useEffect(() => {
     // Fetch top contributors
@@ -120,6 +123,11 @@ const Dashboard = () => {
       .then((res) => res.json())
       .then((data) => setTicketResolution(data))
       .finally(() => setLoadingResolution(false));
+    // Fetch today's production ideas
+    fetch('/api/ideas?status=production&date=today')
+      .then((res) => res.json())
+      .then((data) => setIdeasToday(data))
+      .finally(() => setLoadingIdeas(false));
   }, []);
 
   return (
@@ -207,6 +215,41 @@ const Dashboard = () => {
       <div>
         <div className="card-title mb-5">Recent Tickets</div>
         <RecentTicketsTable />
+      </div>
+      {/* Ideas Produced Today Table */}
+      <div className="mt-8">
+        <Card title="Ideas Produced Today" subtitle="All ideas moved to production today">
+          {loadingIdeas ? (
+            <div className="p-4 text-center text-gray-400">Loading...</div>
+          ) : ideasToday.length === 0 ? (
+            <div className="p-4 text-center text-gray-400">No production ideas today.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full table-auto text-sm">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-700">
+                    <th className="px-3 py-2 text-left font-semibold">Title</th>
+                    <th className="px-3 py-2 text-left font-semibold">Contributor</th>
+                    <th className="px-3 py-2 text-left font-semibold">Script Writer</th>
+                    <th className="px-3 py-2 text-left font-semibold">Deadline</th>
+                    <th className="px-3 py-2 text-left font-semibold">Priority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ideasToday.map((idea) => (
+                    <tr key={idea.idea_id} className="border-b hover:bg-gray-50">
+                      <td className="px-3 py-2">{idea.title}</td>
+                      <td className="px-3 py-2">{idea.contributor_name || idea.contributor_id}</td>
+                      <td className="px-3 py-2">{idea.script_writer_name || idea.script_writer_id}</td>
+                      <td className="px-3 py-2">{idea.script_deadline ? new Date(idea.script_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}</td>
+                      <td className="px-3 py-2 capitalize">{idea.priority}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );

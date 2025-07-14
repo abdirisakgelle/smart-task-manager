@@ -89,14 +89,14 @@ exports.getAdminKPIs = async (req, res) => {
     const satisfactionCount = satisfaction[0].satisfied || 0;
     const satisfactionRate = satisfactionTotal > 0 ? Math.round((satisfactionCount / satisfactionTotal) * 100) : 0;
 
-    // 6. Ideas Executed (approved ideas submitted today)
+    // 6. Ideas Executed (production ideas submitted today)
     const [ideas] = await pool.query(`
-      SELECT COUNT(*) as approved
+      SELECT COUNT(*) as production
       FROM ideas 
       WHERE DATE(submission_date) = CURDATE() 
-        AND status = 'approved'
+        AND status = 'production'
     `);
-    const ideasExecuted = ideas[0].approved || 0;
+    const ideasExecuted = ideas[0].production || 0;
 
     // 7. Content Produced (content marked completed today)
     const [content] = await pool.query(`
@@ -268,32 +268,29 @@ exports.getWeeklyTicketTrends = async (req, res) => {
 // Daily Ticket Volume (Simple Bar Chart - Peak Days)
 exports.getDailyTicketVolume = async (req, res) => {
   try {
-    // Get the start of the current week (Saturday) in Africa/Mogadishu time
+    const moment = require('moment-timezone');
     const now = moment().tz('Africa/Mogadishu');
-    let startOfWeek = now.clone().startOf('week').add(6, 'days'); // Saturday
-    if (now.day() !== 6) {
-      // If today is not Saturday, go back to the most recent Saturday
+
+    // Find the most recent Saturday (including today if today is Saturday)
+    let startOfWeek;
+    if (now.day() === 6) {
+      // Today is Saturday, so start of week is today
+      startOfWeek = now.clone().startOf('day');
+    } else {
+      // Go back to the most recent Saturday
       startOfWeek = now.clone().day(6);
       if (startOfWeek.isAfter(now)) {
         startOfWeek = startOfWeek.subtract(7, 'days');
       }
+      startOfWeek = startOfWeek.startOf('day');
     }
-    const endOfWeek = now; // Up to today
 
-    // Debug logging
-    console.log('=== Daily Ticket Volume Debug ===');
-    console.log('Current time (Mogadishu):', now.format('YYYY-MM-DD HH:mm:ss'));
-    console.log('Start of week:', startOfWeek.format('YYYY-MM-DD HH:mm:ss'));
-    console.log('End of week:', endOfWeek.format('YYYY-MM-DD HH:mm:ss'));
-    console.log('Day of week:', now.day()); // 0=Sunday, 6=Saturday
+    const endOfWeek = now; // Up to today
 
     const startDate = startOfWeek.format('YYYY-MM-DD 00:00:00');
     const endDate = endOfWeek.format('YYYY-MM-DD 23:59:59');
-    
-    console.log('SQL Start Date:', startDate);
-    console.log('SQL End Date:', endDate);
 
-    // Query total tickets per day for the current week (regardless of status)
+    // Query total tickets per day for the current week (Saturday to today)
     const [rows] = await pool.query(`
       SELECT 
         DATE(CONVERT_TZ(created_at, '+00:00', '+03:00')) as day,
@@ -306,35 +303,12 @@ exports.getDailyTicketVolume = async (req, res) => {
       ORDER BY day ASC
     `, [startDate, endDate]);
 
-    console.log('Raw SQL Results:', rows);
-
-    // Also check total tickets in the date range
-    const [totalCheck] = await pool.query(`
-      SELECT COUNT(*) as total_in_range
-      FROM tickets
-      WHERE 
-        created_at >= CONVERT_TZ(?, '+00:00', '+03:00')
-        AND created_at <= CONVERT_TZ(?, '+00:00', '+03:00')
-    `, [startDate, endDate]);
-
-    console.log('Total tickets in date range:', totalCheck[0].total_in_range);
-
-    // Check all tickets to see their dates
-    const [allTickets] = await pool.query(`
-      SELECT created_at, DATE(CONVERT_TZ(created_at, '+00:00', '+03:00')) as mogadishu_date
-      FROM tickets
-      ORDER BY created_at DESC
-      LIMIT 10
-    `);
-
-    console.log('Recent 10 tickets:', allTickets);
-
     // Build a result array for each day from Saturday to today
     const days = [];
     for (let i = 0; i <= now.diff(startOfWeek, 'days'); i++) {
       days.push(startOfWeek.clone().add(i, 'days').format('YYYY-MM-DD'));
     }
-    
+
     const result = days.map(day => {
       const found = rows.find(r => r.day === day);
       return {
@@ -342,9 +316,6 @@ exports.getDailyTicketVolume = async (req, res) => {
         total_tickets: found ? found.total_tickets : 0
       };
     });
-
-    console.log('Final result:', result);
-    console.log('=== End Debug ===');
 
     res.json(result);
   } catch (err) {

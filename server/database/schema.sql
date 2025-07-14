@@ -118,4 +118,10 @@ CREATE TABLE IF NOT EXISTS employee_assignments (
   due_date DATE,
   status VARCHAR(50) DEFAULT 'pending',
   notes TEXT
-); 
+);
+
+-- Add indexes for follow-ups performance
+CREATE INDEX idx_tickets_created_at ON tickets(created_at);
+CREATE INDEX idx_followups_ticket_id ON follow_ups(ticket_id);
+CREATE INDEX idx_supervisor_reviews_ticket_id ON supervisor_reviews(ticket_id);
+CREATE INDEX idx_supervisor_reviews_review_date ON supervisor_reviews(review_date); 

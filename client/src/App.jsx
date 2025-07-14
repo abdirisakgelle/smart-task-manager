@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // home pages  & dashboard
 //import Dashboard from "./pages/dashboard";
@@ -88,92 +89,118 @@ const NewTicketsPage = lazy(() => import("./pages/tickets"));
 const SupervisorReviewsPage = lazy(() => import("./pages/supervisor-reviews"));
 const FollowUpsPage = lazy(() => import("./pages/follow-ups"));
 
+// New pages for menu items
+const NewCreativeIdeasPage = lazy(() => import("./pages/new-creative-ideas"));
+const ContentManagementPage = lazy(() => import("./pages/content-management"));
+const ProductionWorkflowPage = lazy(() => import("./pages/production-workflow"));
+const SocialMediaPage = lazy(() => import("./pages/social-media"));
+const TicketAnalyticsPage = lazy(() => import("./pages/ticket-analytics"));
+const ContentAnalyticsPage = lazy(() => import("./pages/content-analytics"));
+const EmployeeAnalyticsPage = lazy(() => import("./pages/employee-analytics"));
+const UsersPage = lazy(() => import("./pages/users"));
+
 function App() {
   return (
-    <main className="App  relative">
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="ecommerce" element={<Ecommerce />} />
-          <Route path="crm" element={<CrmPage />} />
+    <ErrorBoundary>
+      <main className="App  relative">
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="ecommerce" element={<Ecommerce />} />
+            <Route path="crm" element={<CrmPage />} />
 
-          {/* App pages */}
-          <Route path="todos" element={<TodoPage />} />
-          <Route path="chats" element={<ChatPage />} />
-          <Route path="calendar" element={<CalendarPage />} />
-          <Route path="boards" element={<BoardsPage />} />
-          <Route path="tickets" element={<NewTicketsPage />} />
-          <Route path="tickets/new" element={<div>Create Ticket Page (to implement)</div>} />
-          <Route path="tickets/:ticket_id" element={<div>View Ticket Page (to implement)</div>} />
-          <Route path="tickets/edit/:ticket_id" element={<div>Edit Ticket Page (to implement)</div>} />
-          <Route path="supervisor-reviews" element={<SupervisorReviewsPage />} />
-          <Route path="follow-ups" element={<FollowUpsPage />} />
-          {/* Components pages */}
-          <Route path="button" element={<Button />} />
-          <Route path="dropdown" element={<Dropdown />} />
-          <Route path="badges" element={<Badges />} />
-          <Route path="alert" element={<Alert />} />
-          <Route path="progress" element={<Progressbar />} />
-          <Route path="card" element={<Card />} />
-          <Route path="avatar" element={<AvatarPage />} />
-          <Route path="tooltip" element={<Tooltip />} />
-          <Route path="timeline" element={<TimelinePage />} />
-          <Route path="modal" element={<Modal />} />
-          <Route path="pagination" element={<Pagination />} />
-          <Route path="accordion" element={<AccrodainPage />} />
-          <Route path="spinier" element={<SpinierPage />} />
-          <Route path="tab" element={<TabPage />} />
-          <Route path="video" element={<Video />} />
-          <Route path="textfield" element={<InputPage />} />
-          <Route path="textarea" element={<TextareaPage />} />
-          <Route path="checkbox" element={<CheckboxPage />} />
-          <Route path="radio" element={<RadioPage />} />
-          <Route path="switch" element={<SwitchPage />} />
-          <Route path="input-group" element={<InputGroupPage />} />
-          <Route path="input-mask" element={<InputMask />} />
-          <Route path="form-validation" element={<FormValidation />} />
-          <Route path="file-input" element={<FileInput />} />
-          <Route path="form-repeater" element={<FormRepeater />} />
-          <Route path="select" element={<SelectPage />} />
-          <Route path="react-select" element={<ReactSelectPage />} />
-          <Route path="date-time-picker" element={<Flatpicker />} />
-          <Route path="appex-chart" element={<AppexLineChartPage />} />
-          <Route path="chartjs" element={<ChartJs />} />
-          <Route path="recharts" element={<Recharts />} />
-          <Route path="map" element={<MapPage />} />
-          <Route path="table-basic" element={<BasicTablePage />} />
-          <Route path="react_table" element={<TanstackTable />} />
-          <Route path="invoice" element={<InvoicePage />} />
-          <Route path="add-invoice" element={<InvoiceAddPage />} />
-          <Route path="invoice-preview" element={<InvoicePreviewPage />} />
-          <Route path="edit-invoice" element={<InvoiceEditPage />} />
-          <Route path="pricing" element={<PricingPage />} />
-          <Route path="blank-page" element={<BlankPage />} />
-          <Route path="faq" element={<FaqPage />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="icons" element={<IconPage />} />
-          <Route path="notifications" element={<NotificationPage />} />
-          <Route path="*" element={<Navigate to="/404" />} />
-        </Route>
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="login" element={<Login />} />
-          <Route path="login2" element={<Login2 />} />
-          <Route path="register" element={<Register />} />
-          <Route path="register2" element={<Register2 />} />
-          <Route path="forgot-password" element={<ForgotPass />} />
-          <Route path="forgot-password2" element={<ForgotPass2 />} />
-        </Route>
-        <Route
-          path="/404"
-          element={
-            <Suspense fallback={<Loading />}>
-              <Error />
-            </Suspense>
-          }
-        />
-      </Routes>
-    </main>
+            {/* Administration pages */}
+            <Route path="users" element={<UsersPage />} />
+
+            {/* App pages */}
+            <Route path="todos" element={<TodoPage />} />
+            <Route path="chats" element={<ChatPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="boards" element={<BoardsPage />} />
+            <Route path="tickets" element={<NewTicketsPage />} />
+            <Route path="tickets/new" element={<div>Create Ticket Page (to implement)</div>} />
+            <Route path="tickets/:ticket_id" element={<div>View Ticket Page (to implement)</div>} />
+            <Route path="tickets/edit/:ticket_id" element={<div>Edit Ticket Page (to implement)</div>} />
+            <Route path="supervisor-reviews" element={<SupervisorReviewsPage />} />
+            <Route path="follow-ups" element={<FollowUpsPage />} />
+            
+            {/* Content Production pages */}
+            <Route path="new-creative-ideas" element={<NewCreativeIdeasPage />} />
+            <Route path="content-management" element={<ContentManagementPage />} />
+            <Route path="production-workflow" element={<ProductionWorkflowPage />} />
+            <Route path="social-media" element={<SocialMediaPage />} />
+            
+            {/* Analytics pages */}
+            <Route path="ticket-analytics" element={<TicketAnalyticsPage />} />
+            <Route path="content-analytics" element={<ContentAnalyticsPage />} />
+            <Route path="employee-analytics" element={<EmployeeAnalyticsPage />} />
+            {/* Components pages */}
+            <Route path="button" element={<Button />} />
+            <Route path="dropdown" element={<Dropdown />} />
+            <Route path="badges" element={<Badges />} />
+            <Route path="alert" element={<Alert />} />
+            <Route path="progress" element={<Progressbar />} />
+            <Route path="card" element={<Card />} />
+            <Route path="avatar" element={<AvatarPage />} />
+            <Route path="tooltip" element={<Tooltip />} />
+            <Route path="timeline" element={<TimelinePage />} />
+            <Route path="modal" element={<Modal />} />
+            <Route path="pagination" element={<Pagination />} />
+            <Route path="accordion" element={<AccrodainPage />} />
+            <Route path="spinier" element={<SpinierPage />} />
+            <Route path="tab" element={<TabPage />} />
+            <Route path="video" element={<Video />} />
+            <Route path="textfield" element={<InputPage />} />
+            <Route path="textarea" element={<TextareaPage />} />
+            <Route path="checkbox" element={<CheckboxPage />} />
+            <Route path="radio" element={<RadioPage />} />
+            <Route path="switch" element={<SwitchPage />} />
+            <Route path="input-group" element={<InputGroupPage />} />
+            <Route path="input-mask" element={<InputMask />} />
+            <Route path="form-validation" element={<FormValidation />} />
+            <Route path="file-input" element={<FileInput />} />
+            <Route path="form-repeater" element={<FormRepeater />} />
+            <Route path="select" element={<SelectPage />} />
+            <Route path="react-select" element={<ReactSelectPage />} />
+            <Route path="date-time-picker" element={<Flatpicker />} />
+            <Route path="appex-chart" element={<AppexLineChartPage />} />
+            <Route path="chartjs" element={<ChartJs />} />
+            <Route path="recharts" element={<Recharts />} />
+            <Route path="map" element={<MapPage />} />
+            <Route path="table-basic" element={<BasicTablePage />} />
+            <Route path="react_table" element={<TanstackTable />} />
+            <Route path="invoice" element={<InvoicePage />} />
+            <Route path="add-invoice" element={<InvoiceAddPage />} />
+            <Route path="invoice-preview" element={<InvoicePreviewPage />} />
+            <Route path="edit-invoice" element={<InvoiceEditPage />} />
+            <Route path="pricing" element={<PricingPage />} />
+            <Route path="blank-page" element={<BlankPage />} />
+            <Route path="faq" element={<FaqPage />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="icons" element={<IconPage />} />
+            <Route path="notifications" element={<NotificationPage />} />
+            <Route path="*" element={<Navigate to="/404" />} />
+          </Route>
+          <Route path="/auth" element={<AuthLayout />}>
+            <Route path="login" element={<Login />} />
+            <Route path="login2" element={<Login2 />} />
+            <Route path="register" element={<Register />} />
+            <Route path="register2" element={<Register2 />} />
+            <Route path="forgot-password" element={<ForgotPass />} />
+            <Route path="forgot-password2" element={<ForgotPass2 />} />
+          </Route>
+          <Route
+            path="/404"
+            element={
+              <Suspense fallback={<Loading />}>
+                <Error />
+              </Suspense>
+            }
+          />
+        </Routes>
+      </main>
+    </ErrorBoundary>
   );
 }
 

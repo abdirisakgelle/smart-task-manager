@@ -1,5 +1,5 @@
 // InValid Select
-.DashSpace-app {
+.nasiye-app {
   .react-select.is-invalid {
     .select__control {
       border-color: none !important;
@@ -8,7 +8,7 @@
 }
 
 // Select Control(Input)
-.DashSpace-app {
+.nasiye-app {
   .select__control {
     @apply border-gray-10;
   }
@@ -62,7 +62,7 @@
 }
 
 // Select Menu
-.DashSpace-app {
+.nasiye-app {
   .select__menu,
   .react-select__menu {
     .select__menu-list,
@@ -95,7 +95,7 @@
   }
 }
 
-.DashSpace-app {
+.nasiye-app {
   .select__multi-value,
   .react-select__multi-value {
     @apply text-indigo-500 bg-indigo-100;

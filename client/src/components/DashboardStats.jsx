@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
+import { apiCall } from "@/utils/apiUtils";
 
 const formatTime = (minutes) => {
-  if (!minutes || minutes === 0) return '0m';
-  if (minutes < 60) return `${minutes}m`;
+  if (!minutes || minutes === 0) return "0m";
+  if (minutes < 60) return `${Math.round(minutes)}m`;
   const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
+  const remainingMinutes = Math.round(minutes % 60);
   return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 };
+
+
 
 const kpiCards = [
   // Call Center KPIs - Today's Performance
@@ -96,18 +99,19 @@ const DashboardStats = () => {
   const [loadingFcr, setLoadingFcr] = useState(true);
   const [otherStats, setOtherStats] = useState(null); // Placeholder for other stats
 
+
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const [statsRes, kpiRes] = await Promise.all([
-          fetch('http://localhost:3000/api/dashboard/stats'),
-          fetch('http://localhost:3000/api/dashboard/admin-kpis'),
+        setError(null);
+        
+        const [statsData, kpiData] = await Promise.all([
+          apiCall('/dashboard/stats'),
+          apiCall('/dashboard/admin-kpis')
         ]);
-        if (!statsRes.ok) throw new Error('Failed to fetch dashboard stats');
-        if (!kpiRes.ok) throw new Error('Failed to fetch admin KPIs');
-        const statsData = await statsRes.json();
-        const kpiData = await kpiRes.json();
+        
         setStats(statsData);
         setAdminKPIs(kpiData);
       } catch (err) {
@@ -117,15 +121,25 @@ const DashboardStats = () => {
         setLoading(false);
       }
     };
+    
     fetchStats();
   }, []);
 
   useEffect(() => {
-    fetch("/api/dashboard/fcr-rate")
-      .then((res) => res.json())
-      .then((data) => setFcr(data))
-      .finally(() => setLoadingFcr(false));
-    // Fetch other stats as needed
+    const fetchFcrData = async () => {
+      try {
+        setLoadingFcr(true);
+        const fcrData = await apiCall('/dashboard/fcr-rate');
+        setFcr(fcrData);
+      } catch (err) {
+        console.error('Error fetching FCR data:', err);
+        // Don't set error state for FCR as it's secondary data
+      } finally {
+        setLoadingFcr(false);
+      }
+    };
+    
+    fetchFcrData();
   }, []);
 
   if (loading) {

@@ -7,8 +7,9 @@ const { verifyToken } = require('../middleware/auth');
 router.post('/', usersController.createUser);
 router.post('/login', usersController.loginUser);
 
-// Protected routes (require authentication)
+// Protected routes
 router.get('/', verifyToken, usersController.getAllUsers);
+router.get('/profile', verifyToken, usersController.getCurrentUser);
 router.get('/:id', verifyToken, usersController.getUserById);
 router.put('/:id', verifyToken, usersController.updateUser);
 router.delete('/:id', verifyToken, usersController.deleteUser);

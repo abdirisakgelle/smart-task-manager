@@ -3,8 +3,10 @@ import Card from "@/components/ui/Card";
 import { useTable, useSortBy, usePagination } from "react-table";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/Icon";
+import { useSelector } from "react-redux";
 
 const NewTicketsPage = () => {
+  const currentUser = useSelector((state) => state.auth.user);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,12 +15,32 @@ const NewTicketsPage = () => {
   const [creating, setCreating] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState("all"); // "all", "reopened", "active"
+  const issueTypeOptions = {
+    App: [
+      { value: 'Streaming', label: 'Streaming' },
+      { value: 'VOD', label: 'VOD' },
+      { value: 'OTP', label: 'OTP' },
+      { value: 'App', label: 'App' },
+      { value: 'Other', label: 'Other' },
+    ],
+    IPTV: [
+      { value: 'Subscription Issue', label: 'Subscription Issue' },
+      { value: 'Dark Channels / Black Screen', label: 'Dark Channels / Black Screen' },
+      { value: 'Channel Not Loading', label: 'Channel Not Loading' },
+      { value: 'VOD', label: 'VOD' },
+      { value: 'Streaming', label: 'Streaming' },
+    ],
+  };
+  const issueCategories = [
+    { value: 'App', label: 'App' },
+    { value: 'IPTV', label: 'IPTV' },
+  ];
   const [form, setForm] = useState({
     customer_phone: "",
     communication_channel: "",
     device_type: "",
+    issue_category: "App",
     issue_type: "",
-    agent_id: "",
     resolution_status: "Pending",
     issue_description: "",
     first_call_resolution: false,
@@ -87,6 +109,15 @@ const NewTicketsPage = () => {
       }));
       return;
     }
+    // If issue_category changes, reset issue_type
+    if (name === 'issue_category') {
+      setForm((prev) => ({
+        ...prev,
+        issue_category: value,
+        issue_type: '',
+      }));
+      return;
+    }
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -97,7 +128,7 @@ const NewTicketsPage = () => {
     e.preventDefault();
     setFormError("");
     // Basic validation
-    if (!form.customer_phone || !form.communication_channel || !form.issue_type || !form.issue_description) {
+    if (!form.customer_phone || !form.communication_channel || !form.issue_category || !form.issue_type || !form.issue_description) {
       setFormError("Please fill all required fields.");
       return;
     }
@@ -105,7 +136,7 @@ const NewTicketsPage = () => {
     try {
       const payload = {
         ...form,
-        agent_id: form.agent_id || null,
+        agent_id: currentUser.employee_id, // Use employee_id for agent_id
         device_type: form.device_type || null,
       };
       const response = await fetch("/api/tickets", {
@@ -122,8 +153,8 @@ const NewTicketsPage = () => {
         customer_phone: "",
         communication_channel: "",
         device_type: "",
+        issue_category: "App",
         issue_type: "",
-        agent_id: "",
         resolution_status: "Pending",
         issue_description: "",
         first_call_resolution: false,
@@ -153,6 +184,14 @@ const NewTicketsPage = () => {
   };
   const handleEditChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === 'issue_category') {
+      setEditTicket((prev) => ({
+        ...prev,
+        issue_category: value,
+        issue_type: '',
+      }));
+      return;
+    }
     setEditTicket((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -163,7 +202,7 @@ const NewTicketsPage = () => {
     try {
       const payload = {
         ...editTicket,
-        agent_id: editTicket.agent_id || null,
+        agent_id: currentUser.employee_id || editTicket.agent_id,
         device_type: editTicket.device_type || null,
       };
       const response = await fetch(`/api/tickets/${editTicket.ticket_id}`, {
@@ -225,7 +264,7 @@ const NewTicketsPage = () => {
           pad(now.getHours()) + ':' +
           pad(now.getMinutes()) + ':' +
           pad(now.getSeconds());
-        const { ticket_id, customer_phone, communication_channel, device_type, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, created_at } = row.original;
+        const { ticket_id, customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, created_at } = row.original;
         // Calculate AHT in seconds
         let fcrValue = first_call_resolution;
         if (created_at) {
@@ -239,6 +278,7 @@ const NewTicketsPage = () => {
           customer_phone,
           communication_channel,
           device_type,
+          issue_category, // Ensure this is included
           issue_type,
           issue_description,
           agent_id,
@@ -363,138 +403,200 @@ const NewTicketsPage = () => {
       )}
       {/* Modal for Create New Ticket */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
-              onClick={() => setShowModal(false)}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 className="text-2xl font-semibold mb-4">Create New Ticket</h2>
-            <form ref={formRef} onSubmit={handleCreateTicket}>
-              <div className="flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8 px-4">
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowModal(false)}></div>
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6">
+              <div className="flex items-center gap-3">
+                <Icon icon="heroicons-outline:ticket" className="w-6 h-6 text-primary" />
                 <div>
-                  <label className="block font-medium mb-1">Customer Phone *</label>
-                  <input
-                    type="text"
-                    name="customer_phone"
-                    className="input w-full"
-                    placeholder="Enter customer phone number"
-                    value={form.customer_phone}
-                    onChange={handleFormChange}
-                    required
-                  />
+                  <h2 className="text-xl font-medium text-slate-900">Create New Ticket</h2>
+                  <p className="text-sm text-slate-500 mt-0.5">Enter Ticket Information</p>
                 </div>
-                <div>
-                  <label className="block font-medium mb-1">Communication Channel *</label>
-                  <select
-                    name="communication_channel"
-                    className="input w-full"
-                    value={form.communication_channel}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    <option value="">Select channel</option>
-                    <option value="Phone">Phone</option>
-                    <option value="Email">Email</option>
-                    <option value="Chat">Chat</option>
-                  </select>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-slate-500 transition-colors"
+              >
+                <Icon icon="heroicons:x-mark" className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form ref={formRef} onSubmit={handleCreateTicket} className="px-6 pb-6">
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      name="customer_phone"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="Enter phone number"
+                      value={form.customer_phone}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                      Communication Channel
+                    </label>
+                    <select
+                      name="communication_channel"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={form.communication_channel}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Select channel</option>
+                      <option value="Phone">Phone</option>
+                      <option value="Email">Email</option>
+                      <option value="Chat">Chat</option>
+                      <option value="Social Media">Social Media</option>
+                      <option value="In Person">In Person</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-medium mb-1">Device Type</label>
-                  <select
-                    name="device_type"
-                    className="input w-full"
-                    value={form.device_type}
-                    onChange={handleFormChange}
-                  >
-                    <option value="">Select device type</option>
-                    <option value="Mobile">Mobile</option>
-                    <option value="Laptop">Laptop</option>
-                    <option value="Tablet">Tablet</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                      Device Type
+                    </label>
+                    <select
+                      name="device_type"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={form.device_type}
+                      onChange={handleFormChange}
+                    >
+                      <option value="">Select device</option>
+                      <option value="Mobile">Mobile</option>
+                      <option value="Laptop">Laptop</option>
+                      <option value="Tablet">Tablet</option>
+                      <option value="Desktop">Desktop</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                      Issue Category
+                    </label>
+                    <select
+                      name="issue_category"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={form.issue_category}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Select category</option>
+                      {issueCategories.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-medium mb-1">Issue Type *</label>
-                  <select
-                    name="issue_type"
-                    className="input w-full"
-                    value={form.issue_type}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    <option value="">Select issue type</option>
-                    <option value="Login">Login</option>
-                    <option value="Payment">Payment</option>
-                    <option value="Billing">Billing</option>
-                    <option value="Technical">Technical</option>
-                    <option value="Network">Network</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                      Issue Type
+                    </label>
+                    <select
+                      name="issue_type"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={form.issue_type}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Select type</option>
+                      {form.issue_category && issueTypeOptions[form.issue_category].map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                      Status
+                    </label>
+                    <select
+                      name="resolution_status"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={form.resolution_status}
+                      onChange={handleFormChange}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block font-medium mb-1">Agent ID</label>
-                  <input
-                    type="text"
-                    name="agent_id"
-                    className="input w-full"
-                    placeholder="Enter agent ID"
-                    value={form.agent_id}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Status</label>
-                  <select
-                    name="resolution_status"
-                    className="input w-full"
-                    value={form.resolution_status}
-                    onChange={handleFormChange}
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Issue Description *</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    Issue Description
+                  </label>
                   <textarea
                     name="issue_description"
-                    className="input w-full"
+                    rows="3"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
                     placeholder="Describe the issue in detail..."
                     value={form.issue_description}
                     onChange={handleFormChange}
                     required
                   />
                 </div>
-                {/* FCR checkbox only if status is Done */}
+
                 {form.resolution_status === 'Done' && (
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      name="first_call_resolution"
                       id="fcr"
+                      name="first_call_resolution"
                       checked={form.first_call_resolution}
                       onChange={handleFormChange}
-                      className="mr-2"
+                      className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
                     />
-                    <label htmlFor="fcr" className="font-medium">First Call Resolution (FCR)</label>
+                    <label htmlFor="fcr" className="text-sm text-slate-600">
+                      First Call Resolution (FCR)
+                    </label>
                   </div>
                 )}
-                {formError && <div className="text-red-500 mt-2">{formError}</div>}
+
+                {formError && (
+                  <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
+                    <Icon icon="heroicons:exclamation-circle" className="w-5 h-5 flex-shrink-0" />
+                    <span>{formError}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-end mt-6 space-x-2">
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-3 mt-8">
                 <button
                   type="button"
-                  className="btn btn-secondary"
                   onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
                   disabled={creating}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={creating}>
-                  {creating ? "Creating..." : "Create Ticket"}
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 focus:ring-2 focus:ring-primary/20 transition-colors min-w-[100px] flex items-center justify-center"
+                  disabled={creating}
+                >
+                  {creating ? (
+                    <>
+                      <Icon icon="heroicons:arrow-path" className="w-4 h-4 animate-spin mr-2" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    'Create Ticket'
+                  )}
                 </button>
               </div>
             </form>
@@ -574,111 +676,151 @@ const NewTicketsPage = () => {
       )}
       {/* Edit Ticket Modal */}
       {editTicket && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
-              onClick={() => setEditTicket(null)}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 className="text-2xl font-semibold mb-4">Edit Ticket</h2>
-            <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
-              <div>
-                <label className="block font-medium mb-1">Customer Phone *</label>
-                <input
-                  type="text"
-                  name="customer_phone"
-                  className="input w-full"
-                  value={editTicket.customer_phone}
-                  onChange={handleEditChange}
-                  required
-                />
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8 px-4">
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px]" onClick={() => setEditTicket(null)}></div>
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6">
+              <div className="flex items-center gap-3">
+                <Icon icon="heroicons-outline:ticket" className="w-6 h-6 text-primary" />
+                <div>
+                  <h2 className="text-xl font-medium text-slate-900">Edit Ticket</h2>
+                  <p className="text-sm text-slate-500 mt-0.5">Update Ticket Information</p>
+                </div>
               </div>
-              <div>
-                <label className="block font-medium mb-1">Communication Channel *</label>
-                <select
-                  name="communication_channel"
-                  className="input w-full"
-                  value={editTicket.communication_channel}
-                  onChange={handleEditChange}
-                  required
+              <button
+                onClick={() => setEditTicket(null)}
+                className="text-slate-400 hover:text-slate-500 transition-colors"
+              >
+                <Icon icon="heroicons:x-mark" className="w-5 h-5" />
+              </button>
+            </div>
+            {/* Modal Body */}
+            <form onSubmit={handleEditSubmit} className="px-6 pb-6">
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Phone Number</label>
+                    <input
+                      type="text"
+                      name="customer_phone"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="Enter phone number"
+                      value={editTicket.customer_phone}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Communication Channel</label>
+                    <select
+                      name="communication_channel"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={editTicket.communication_channel}
+                      onChange={handleEditChange}
+                      required
+                    >
+                      <option value="">Select channel</option>
+                      <option value="Phone">Phone</option>
+                      <option value="Email">Email</option>
+                      <option value="Chat">Chat</option>
+                      <option value="Social Media">Social Media</option>
+                      <option value="In Person">In Person</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Device Type</label>
+                    <select
+                      name="device_type"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={editTicket.device_type}
+                      onChange={handleEditChange}
+                    >
+                      <option value="">Select device</option>
+                      <option value="Mobile">Mobile</option>
+                      <option value="Laptop">Laptop</option>
+                      <option value="Tablet">Tablet</option>
+                      <option value="Desktop">Desktop</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Issue Category</label>
+                    <select
+                      name="issue_category"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={editTicket.issue_category}
+                      onChange={handleEditChange}
+                      required
+                    >
+                      <option value="">Select category</option>
+                      {issueCategories.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Issue Type</label>
+                    <select
+                      name="issue_type"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={editTicket.issue_type}
+                      onChange={handleEditChange}
+                      required
+                    >
+                      <option value="">Select type</option>
+                      {editTicket.issue_category && issueTypeOptions[editTicket.issue_category].map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Status</label>
+                    <select
+                      name="resolution_status"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      value={editTicket.resolution_status}
+                      onChange={handleEditChange}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Done">Done</option>
+                      <option value="Reopened">Reopened</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Issue Description</label>
+                  <textarea
+                    name="issue_description"
+                    rows="3"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
+                    placeholder="Describe the issue in detail..."
+                    value={editTicket.issue_description}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </div>
+              </div>
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-3 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setEditTicket(null)}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
                 >
-                  <option value="">Select channel</option>
-                  <option value="Phone">Phone</option>
-                  <option value="Email">Email</option>
-                  <option value="Chat">Chat</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Device Type</label>
-                <select
-                  name="device_type"
-                  className="input w-full"
-                  value={editTicket.device_type}
-                  onChange={handleEditChange}
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 focus:ring-2 focus:ring-primary/20 transition-colors min-w-[100px] flex items-center justify-center"
                 >
-                  <option value="">Select device type</option>
-                  <option value="Mobile">Mobile</option>
-                  <option value="Laptop">Laptop</option>
-                  <option value="Tablet">Tablet</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Issue Type *</label>
-                <select
-                  name="issue_type"
-                  className="input w-full"
-                  value={editTicket.issue_type}
-                  onChange={handleEditChange}
-                  required
-                >
-                  <option value="">Select issue type</option>
-                  <option value="Login">Login</option>
-                  <option value="Payment">Payment</option>
-                  <option value="Billing">Billing</option>
-                  <option value="Technical">Technical</option>
-                  <option value="Network">Network</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Agent ID</label>
-                <input
-                  type="text"
-                  name="agent_id"
-                  className="input w-full"
-                  value={editTicket.agent_id}
-                  onChange={handleEditChange}
-                />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Status</label>
-                <select
-                  name="resolution_status"
-                  className="input w-full"
-                  value={editTicket.resolution_status}
-                  onChange={handleEditChange}
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Done">Done</option>
-                  <option value="Reopened">Reopened</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Issue Description *</label>
-                <textarea
-                  name="issue_description"
-                  className="input w-full"
-                  value={editTicket.issue_description}
-                  onChange={handleEditChange}
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button type="button" className="btn btn-secondary" onClick={() => setEditTicket(null)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Save Changes</button>
+                  Save Changes
+                </button>
               </div>
             </form>
           </div>

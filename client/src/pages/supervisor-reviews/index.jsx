@@ -4,52 +4,81 @@ import { useTable, useSortBy, usePagination } from "react-table";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/Icon";
 import Modal from "@/components/ui/Modal";
+import { useSmartPolling } from "@/hooks/useSmartPolling";
+import { apiCall, POLLING_CONFIGS } from "@/utils/apiUtils";
+import Alert from "@/components/ui/Alert";
 
 const SupervisorReviewsPage = () => {
   const navigate = useNavigate();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [errorBanner, setErrorBanner] = useState(null);
 
   // Modal state for editing notes
   const [modalOpen, setModalOpen] = useState(false);
   const [modalNotes, setModalNotes] = useState("");
   const [modalReview, setModalReview] = useState(null);
 
-  const fetchReviews = async () => {
+  // Smart polling fetch function
+  const fetchReviews = async (signal) => {
     try {
-      setLoading(true);
-      const response = await fetch("/api/supervisor-reviews");
-      if (!response.ok) throw new Error("Failed to fetch supervisor reviews");
-      const data = await response.json();
+      const data = await apiCall("/supervisor-reviews", { signal });
       setReviews(data);
       setError(null);
+      setErrorBanner(null); // Clear error banner on success
+      return data;
     } catch (err) {
       setError(err.message);
-    } finally {
-      setLoading(false);
+      setErrorBanner(err.message); // Show error banner
+      throw err;
     }
   };
 
-  // Auto-refresh data every 30 minutes
+  // Initial data fetch
   useEffect(() => {
-    fetchReviews();
+    const loadInitialData = async () => {
+      setLoading(true);
+      try {
+        await fetchReviews();
+      } catch (err) {
+        // Error already handled by fetchReviews
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    const interval = setInterval(fetchReviews, 30 * 60 * 1000); // 30 minutes
-    
-    return () => clearInterval(interval);
+    loadInitialData();
   }, []);
+
+  // Set polling interval to 30 seconds (30000 ms)
+  const POLLING_INTERVAL_MS = 30000;
+  // Smart polling with error handling
+  const { isPolling, retryCount, lastError } = useSmartPolling(
+    fetchReviews,
+    POLLING_INTERVAL_MS, // 30 seconds
+    {
+      ...POLLING_CONFIGS.INFREQUENT,
+      onError: (error, retryCount) => {
+        setErrorBanner(error.message || String(error));
+      },
+      onSuccess: (data) => {
+        setReviews(data);
+        setError(null);
+        setErrorBanner(null);
+      }
+    }
+  );
 
   const handleUpdateReview = async (reviewId, updates) => {
     try {
-      const response = await fetch(`/api/supervisor-reviews/${reviewId}`, {
+      await apiCall(`/supervisor-reviews/${reviewId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
+        body: updates,
       });
-      if (!response.ok) throw new Error("Failed to update review");
+      
       // Refresh data after update
-      fetchReviews();
+      await fetchReviews();
     } catch (err) {
       alert(err.message);
     }
@@ -224,16 +253,14 @@ const SupervisorReviewsPage = () => {
     </Card>
   );
 
-  if (error) return (
-    <Card>
-      <div className="text-red-500 p-4">
-        Error loading supervisor reviews: {error.message}
-      </div>
-    </Card>
-  );
-
   return (
     <Card>
+      {/* Error banner (non-blocking) */}
+      {errorBanner && (
+        <Alert type="error" className="mb-4">
+          {errorBanner}
+        </Alert>
+      )}
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-semibold">Supervisor Reviews</h2>
@@ -242,8 +269,11 @@ const SupervisorReviewsPage = () => {
           </p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Icon icon="ph:clock" className="text-green-500" />
-          <span>Auto-refresh every 30 minutes</span>
+          <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+          <span>Auto-updating</span>
+          {retryCount > 0 && (
+            <span className="text-orange-500">(Retry {retryCount})</span>
+          )}
         </div>
       </div>
 
@@ -293,35 +323,38 @@ const SupervisorReviewsPage = () => {
         <div className="overflow-x-auto">
           <table {...getTableProps()} className="min-w-full table-auto border">
             <thead>
-              {headerGroups.map((headerGroup) => (
-                <tr {...headerGroup.getHeaderGroupProps()}>
-                  {headerGroup.headers.map((column) => (
-                    <th 
-                      {...column.getHeaderProps(column.getSortByToggleProps())} 
-                      className="px-3 py-2 border-b bg-gray-50 text-left cursor-pointer hover:bg-gray-100"
+              {headerGroups.map(headerGroup => (
+                <tr {...headerGroup.getHeaderGroupProps()} className="bg-gray-100">
+                  {headerGroup.headers.map(column => (
+                    <th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                      className="px-3 py-2 text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-200"
                     >
-                      <div className="flex items-center">
-                        {column.render("Header")}
-                        {column.isSorted && (
-                          <Icon 
-                            icon={column.isSortedDesc ? "ph:caret-down" : "ph:caret-up"} 
-                            className="ml-1 text-gray-400" 
-                          />
+                      {column.render('Header')}
+                      <span className="ml-1">
+                        {column.isSorted ? (
+                          column.isSortedDesc ? (
+                            <Icon icon="ph:caret-down" className="text-xs" />
+                          ) : (
+                            <Icon icon="ph:caret-up" className="text-xs" />
+                          )
+                        ) : (
+                          <Icon icon="ph:caret-up-down" className="text-xs text-gray-400" />
                         )}
-                      </div>
+                      </span>
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
             <tbody {...getTableBodyProps()}>
-              {page.map((row) => {
+              {page.map(row => {
                 prepareRow(row);
                 return (
-                  <tr {...row.getRowProps()} className="hover:bg-gray-50">
-                    {row.cells.map((cell) => (
-                      <td {...cell.getCellProps()} className="px-3 py-2 border-b">
-                        {cell.render("Cell")}
+                  <tr {...row.getRowProps()} className="border-b hover:bg-gray-50">
+                    {row.cells.map(cell => (
+                      <td {...cell.getCellProps()} className="px-3 py-2">
+                        {cell.render('Cell')}
                       </td>
                     ))}
                   </tr>
@@ -329,44 +362,56 @@ const SupervisorReviewsPage = () => {
               })}
             </tbody>
           </table>
-          
-          {pageOptions.length > 1 && (
-            <div className="flex justify-between items-center mt-4">
-              <div className="flex items-center space-x-2">
-                <button 
-                  onClick={() => previousPage()} 
-                  disabled={!canPreviousPage} 
-                  className="btn btn-sm btn-outline"
-                >
-                  Previous
-                </button>
-                <span className="text-sm">
-                  Page {state.pageIndex + 1} of {pageOptions.length}
-                </span>
-                <button 
-                  onClick={() => nextPage()} 
-                  disabled={!canNextPage} 
-                  className="btn btn-sm btn-outline"
-                >
-                  Next
-                </button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm">Show:</span>
-                <select
-                  value={state.pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="input input-sm w-20"
-                >
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <option key={pageSize} value={pageSize}>
-                      {pageSize}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => gotoPage(0)}
+                disabled={!canPreviousPage}
+                className="btn btn-sm btn-outline"
+              >
+                <Icon icon="ph:caret-double-left" />
+              </button>
+              <button
+                onClick={() => previousPage()}
+                disabled={!canPreviousPage}
+                className="btn btn-sm btn-outline"
+              >
+                <Icon icon="ph:caret-left" />
+              </button>
+              <button
+                onClick={() => nextPage()}
+                disabled={!canNextPage}
+                className="btn btn-sm btn-outline"
+              >
+                <Icon icon="ph:caret-right" />
+              </button>
+              <button
+                onClick={() => gotoPage(pageCount - 1)}
+                disabled={!canNextPage}
+                className="btn btn-sm btn-outline"
+              >
+                <Icon icon="ph:caret-double-right" />
+              </button>
             </div>
-          )}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">
+                Page {state.pageIndex + 1} of {pageOptions.length}
+              </span>
+              <select
+                value={state.pageSize}
+                onChange={e => setPageSize(Number(e.target.value))}
+                className="input input-sm"
+              >
+                {[10, 20, 30, 40, 50].map(pageSize => (
+                  <option key={pageSize} value={pageSize}>
+                    Show {pageSize}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       )}
     </Card>

@@ -9,10 +9,13 @@ exports.createUser = async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' });
   }
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // For now, store password as plain text (as requested)
+    // In production, you should hash passwords
+    const passwordToStore = password; // No hashing for now
+    
     const [result] = await pool.query(
       'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
-      [username, hashedPassword, role || 'user']
+      [username, passwordToStore, role || 'user']
     );
     res.status(201).json({
       user_id: result.insertId,
@@ -63,7 +66,7 @@ exports.updateUser = async (req, res) => {
     // Only update password if it's provided
     if (password) {
       query += ', password_hash = ?';
-      params.push(password);
+      params.push(password); // Store as plain text for now
     }
 
     query += ' WHERE user_id = ?';
@@ -95,36 +98,76 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// Login user with bcrypt password check and JWT
+// Login user with plain text password check and JWT
 exports.loginUser = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
   try {
+    // Join with employees table to get employee information
     const [rows] = await pool.query(
-      'SELECT * FROM users WHERE username = ?',
+      `SELECT u.*, e.name as employee_name, e.department 
+       FROM users u 
+       LEFT JOIN employees e ON u.employee_id = e.employee_id 
+       WHERE u.username = ?`,
       [username]
     );
     if (rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    
     const user = rows[0];
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    if (!isPasswordValid) return res.status(401).json({ error: 'Invalid credentials' });
+    
+    // Check if password matches (plain text comparison for now)
+    const isPasswordValid = password === user.password_hash;
+    
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Generate JWT token
     const token = jwt.sign(
-      { user_id: user.user_id, role: user.role },
-      process.env.JWT_SECRET,
+      { 
+        user_id: user.user_id, 
+        username: user.username,
+        role: user.role,
+        employee_id: user.employee_id
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
+    
     res.json({
       token,
       user: {
         user_id: user.user_id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        employee_id: user.employee_id,
+        name: user.employee_name,
+        department: user.department
       }
     });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Server error: ' + err.message });
+  }
+};
+
+// Get current user profile
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT u.user_id, u.employee_id, u.username, u.role, u.created_at,
+              e.name as employee_name, e.department 
+       FROM users u 
+       LEFT JOIN employees e ON u.employee_id = e.employee_id 
+       WHERE u.user_id = ?`,
+      [req.user.user_id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 

@@ -28,8 +28,25 @@ export default defineConfig({
   ],
 
   server: {
+    host: '0.0.0.0', // Allow external connections
+    port: 5173,
     proxy: {
       '/api': 'http://localhost:3000',
     },
   },
+
+  // Add SPA routing support for production builds
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+        },
+      },
+    },
+  },
+
+  // Ensure proper base path handling
+  base: '/',
 });

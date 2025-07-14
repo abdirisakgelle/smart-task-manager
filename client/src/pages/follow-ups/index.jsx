@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
+import { apiCall } from "@/utils/apiUtils";
+import Alert from "@/components/ui/Alert";
 
 const FollowUpsPage = () => {
   const [tickets, setTickets] = useState([]);
@@ -18,26 +20,27 @@ const FollowUpsPage = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [errorBanner, setErrorBanner] = useState(null);
 
+  // Simple fetch function without polling
   const fetchTickets = async () => {
-    setLoading(true);
     try {
-      const res = await fetch(`/api/follow-ups/eligible?days=${days}`);
-      if (!res.ok) throw new Error("Failed to fetch eligible follow-ups");
-      const data = await res.json();
+      setLoading(true);
+      const data = await apiCall(`/follow-ups/eligible?days=${days}`);
       setTickets(data);
       setError(null);
+      setErrorBanner(null);
     } catch (err) {
       setError(err.message);
+      setErrorBanner(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  // Load data when days changes
   useEffect(() => {
     fetchTickets();
-    const interval = setInterval(fetchTickets, 60000); // auto-refresh every 60s
-    return () => clearInterval(interval);
   }, [days]);
 
   const handleOpenModal = (ticket) => {
@@ -73,14 +76,11 @@ const FollowUpsPage = () => {
         repeated_issue: form.repeated_issue === "yes",
         follow_up_notes: form.follow_up_notes
       };
-      const res = await fetch("/api/follow-ups", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error("Failed to submit follow-up");
       
-      const result = await res.json();
+      const result = await apiCall("/follow-ups", {
+        method: "POST",
+        body: payload
+      });
       
       // Show success message with ticket reopening info if applicable
       if (result.ticket_reopened) {
@@ -88,6 +88,9 @@ const FollowUpsPage = () => {
       } else {
         alert("Follow-up submitted successfully.");
       }
+      
+      // Remove the completed ticket from the list
+      setTickets(prev => prev.filter(t => t.ticket_id !== selectedTicket.ticket_id));
       
       setShowModal(false);
       setSelectedTicket(null);
@@ -98,7 +101,6 @@ const FollowUpsPage = () => {
         repeated_issue: "",
         follow_up_notes: ""
       });
-      fetchTickets();
     } catch (err) {
       setFormError(err.message);
     } finally {
@@ -108,6 +110,11 @@ const FollowUpsPage = () => {
 
   return (
     <Card>
+      {errorBanner && (
+        <Alert type="error" className="mb-4">
+          {errorBanner}
+        </Alert>
+      )}
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-semibold">Pending Follow-Ups</h2>
@@ -127,12 +134,19 @@ const FollowUpsPage = () => {
             <option value={1}>Last 1 day</option>
             <option value={30}>Last 30 days</option>
           </select>
+          <button 
+            onClick={fetchTickets}
+            className="btn btn-sm btn-outline"
+            disabled={loading}
+          >
+            <Icon icon="refresh" className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
         </div>
       </div>
+      
       {loading ? (
         <div className="p-8 text-center text-gray-500">Loading...</div>
-      ) : error ? (
-        <div className="p-8 text-center text-red-500">{error}</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full table-auto border">
@@ -153,16 +167,22 @@ const FollowUpsPage = () => {
                   <td colSpan={7} className="text-center py-8 text-gray-400">No eligible tickets found.</td>
                 </tr>
               ) : (
-                tickets.map(ticket => (
-                  <tr key={ticket.ticket_id} className="border-b">
+                tickets.map((ticket) => (
+                  <tr key={ticket.ticket_id} className="border-t hover:bg-gray-50">
                     <td className="px-3 py-2">#{String(ticket.ticket_id).padStart(4, '0')}</td>
                     <td className="px-3 py-2">{ticket.customer_phone}</td>
                     <td className="px-3 py-2">{ticket.issue_type}</td>
                     <td className="px-3 py-2">{ticket.resolution_status}</td>
                     <td className="px-3 py-2">{ticket.supervisor_status || '-'}</td>
-                    <td className="px-3 py-2">{ticket.review_date ? new Date(ticket.review_date).toLocaleDateString() : new Date(ticket.created_at).toLocaleDateString()}</td>
                     <td className="px-3 py-2">
-                      <button className="btn btn-xs btn-primary" onClick={() => handleOpenModal(ticket)}>
+                      {new Date(ticket.review_date || ticket.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2">
+                      <button
+                        onClick={() => handleOpenModal(ticket)}
+                        className="btn btn-sm btn-danger"
+                        disabled={submitting}
+                      >
                         Follow Up
                       </button>
                     </td>
@@ -173,101 +193,152 @@ const FollowUpsPage = () => {
           </table>
         </div>
       )}
-      {/* Modal for follow-up form */}
+
+      {/* Follow-up Modal */}
       {showModal && selectedTicket && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
-              onClick={handleCloseModal}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 className="text-2xl font-semibold mb-4">Follow Up for Ticket #{String(selectedTicket.ticket_id).padStart(4, '0')}</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block font-medium mb-1">Was your issue solved?</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="issue_solved"
-                      value="yes"
-                      checked={form.issue_solved === "yes"}
-                      onChange={handleFormChange}
-                      className="mr-2"
-                      required
-                    />
-                    Yes
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="issue_solved"
-                      value="no"
-                      checked={form.issue_solved === "no"}
-                      onChange={handleFormChange}
-                      className="mr-2"
-                      required
-                    />
-                    No
-                  </label>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                Follow Up for Ticket #{String(selectedTicket.ticket_id).padStart(4, '0')}
+              </h3>
+              <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700">
+                <Icon icon="x" />
+              </button>
+            </div>
+
+            {formError && (
+              <Alert type="error" className="mb-4">
+                {formError}
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-2">Was your issue solved?</label>
+                  <div className="space-x-4">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="issue_solved"
+                        value="yes"
+                        checked={form.issue_solved === "yes"}
+                        onChange={handleFormChange}
+                        className="mr-2"
+                      />
+                      Yes
+                    </label>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="issue_solved"
+                        value="no"
+                        checked={form.issue_solved === "no"}
+                        onChange={handleFormChange}
+                        className="mr-2"
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block mb-2">Customer Location</label>
+                  <input
+                    type="text"
+                    name="customer_location"
+                    value={form.customer_location}
+                    onChange={handleFormChange}
+                    className="input w-full"
+                    placeholder="Enter customer location"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2">Are you satisfied with the resolution?</label>
+                  <div className="space-x-4">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="satisfied"
+                        value="yes"
+                        checked={form.satisfied === "yes"}
+                        onChange={handleFormChange}
+                        className="mr-2"
+                      />
+                      Yes
+                    </label>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="satisfied"
+                        value="no"
+                        checked={form.satisfied === "no"}
+                        onChange={handleFormChange}
+                        className="mr-2"
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block mb-2">Is this a repeated issue?</label>
+                  <div className="space-x-4">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="repeated_issue"
+                        value="yes"
+                        checked={form.repeated_issue === "yes"}
+                        onChange={handleFormChange}
+                        className="mr-2"
+                      />
+                      Yes
+                    </label>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        name="repeated_issue"
+                        value="no"
+                        checked={form.repeated_issue === "no"}
+                        onChange={handleFormChange}
+                        className="mr-2"
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block mb-2">Follow-up Notes</label>
+                  <textarea
+                    name="follow_up_notes"
+                    value={form.follow_up_notes}
+                    onChange={handleFormChange}
+                    className="input w-full h-24"
+                    placeholder="Additional notes about the follow-up..."
+                  />
                 </div>
               </div>
-              <div>
-                <label className="block font-medium mb-1">Customer Location</label>
-                <input
-                  type="text"
-                  name="customer_location"
-                  className="input w-full"
-                  value={form.customer_location}
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Satisfied?</label>
-                <select
-                  name="satisfied"
-                  className="input w-full"
-                  value={form.satisfied}
-                  onChange={handleFormChange}
-                  required
+
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="btn btn-outline"
+                  disabled={submitting}
                 >
-                  <option value="">Select</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Repeated Issue?</label>
-                <select
-                  name="repeated_issue"
-                  className="input w-full"
-                  value={form.repeated_issue}
-                  onChange={handleFormChange}
-                  required
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-danger"
+                  disabled={submitting}
                 >
-                  <option value="">Select</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Notes</label>
-                <textarea
-                  name="follow_up_notes"
-                  className="input w-full min-h-[80px]"
-                  value={form.follow_up_notes}
-                  onChange={handleFormChange}
-                  placeholder="Enter notes..."
-                />
-              </div>
-              {formError && <div className="text-red-500 text-sm">{formError}</div>}
-              <div className="flex justify-end gap-2">
-                <button type="button" className="btn btn-secondary" onClick={handleCloseModal} disabled={submitting}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? "Submitting..." : "Submit Follow-Up"}</button>
+                  {submitting ? "Submitting..." : "Submit Follow-Up"}
+                </button>
               </div>
             </form>
           </div>

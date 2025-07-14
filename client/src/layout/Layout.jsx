@@ -15,17 +15,33 @@ import { ToastContainer } from "react-toastify";
 import { useSelector } from "react-redux";
 import Loading from "@/components/Loading";
 import { motion, AnimatePresence } from "framer-motion";
+import { logSidebarState } from "@/utils/sidebarDiagnostic";
+import { logDeepDebug } from "@/utils/deepDebugSidebar";
+import { useNavigationFix } from "@/hooks/useNavigationFix";
 const Layout = () => {
   const { width, breakpoints } = useWidth();
   const [collapsed] = useSidebar();
   const navigate = useNavigate();
   const { isAuth, user } = useSelector((state) => state.auth);
+  const layoutState = useSelector((state) => state.layout);
 
   useEffect(() => {
     if (!isAuth || !user) {
-      navigate("/");
+      navigate("/auth/login");
     }
   }, [isAuth, navigate]);
+
+  // Run diagnostic on component mount and when layout state changes
+  useEffect(() => {
+    // Only run diagnostic in development or when explicitly requested
+    if (process.env.NODE_ENV === 'development' || localStorage.getItem('debug_sidebar') === 'true') {
+      logSidebarState(layoutState);
+      // Run deep debug if explicitly requested
+      if (localStorage.getItem('deep_debug_sidebar') === 'true') {
+        logDeepDebug(layoutState);
+      }
+    }
+  }, [layoutState]);
   const switchHeaderClass = () => {
     if (menuType === "horizontal" || menuHidden) {
       return "ltr:ml-0 rtl:mr-0";
@@ -43,6 +59,9 @@ const Layout = () => {
   const [mobileMenu, setMobileMenu] = useMobileMenu();
   const nodeRef = useRef(null);
   const location = useLocation();
+  
+  // Apply navigation fixes
+  useNavigationFix();
 
   return (
     <>

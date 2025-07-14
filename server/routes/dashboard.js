@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
+const { adminAuth } = require('../middleware/auth');
 
 router.get('/stats', dashboardController.getDashboardStats);
-router.get('/admin-kpis', dashboardController.getAdminKPIs);
+router.get('/admin-kpis', adminAuth, dashboardController.getAdminKPIs);
 router.get('/top-contributors', dashboardController.getTopContributors);
 router.get('/top-complained-issues', dashboardController.getTopComplainedIssues);
 router.get('/ticket-resolution-overview', dashboardController.getTicketResolutionOverview);

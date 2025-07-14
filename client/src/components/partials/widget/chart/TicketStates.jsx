@@ -141,16 +141,15 @@ const TicketStates = ({ height = 340 }) => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 flex flex-col items-center justify-center">
       <Chart
         series={series}
         options={options}
         type="radialBar"
         height={height}
       />
-      
-      {/* Ticket counts below the chart */}
-      <div className="flex justify-center gap-8 mt-6">
+      {/* Ticket counts below the chart, centered */}
+      <div className="flex flex-row justify-center items-center gap-12 mt-6 w-full">
         <div className="text-center">
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">
             {closedTickets}
@@ -159,7 +158,6 @@ const TicketStates = ({ height = 340 }) => {
             Closed Tickets
           </div>
         </div>
-        
         <div className="text-center">
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">
             {openTickets}

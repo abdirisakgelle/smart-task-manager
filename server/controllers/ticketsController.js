@@ -3,14 +3,27 @@ const cors = require('cors');
 
 // Create new ticket
 exports.createTicket = async (req, res) => {
-  const { customer_phone, communication_channel, device_type, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
+  const { customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
   if (!agent_id) {
     return res.status(400).json({ error: 'agent_id is required.' });
   }
+  // Validate issue_category
+  const validCategories = ['App', 'IPTV'];
+  if (!validCategories.includes(issue_category)) {
+    return res.status(400).json({ error: 'Invalid issue_category. Must be App or IPTV.' });
+  }
+  // Validate issue_type based on category
+  const validTypes = {
+    App: ['Streaming', 'VOD', 'OTP', 'App', 'Other'],
+    IPTV: ['Subscription Issue', 'Dark Channels / Black Screen', 'Channel Not Loading', 'VOD', 'Streaming']
+  };
+  if (!validTypes[issue_category].includes(issue_type)) {
+    return res.status(400).json({ error: `Invalid issue_type for category ${issue_category}.` });
+  }
   try {
     const [result] = await pool.query(
-      'INSERT INTO tickets (customer_phone, communication_channel, device_type, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [customer_phone || null, communication_channel || null, device_type || null, issue_type || null, issue_description || null, agent_id, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null]
+      'INSERT INTO tickets (customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [customer_phone || null, communication_channel || null, device_type || null, issue_category, issue_type, issue_description || null, agent_id, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null]
     );
     res.status(201).json({
       ticket_id: result.insertId,
@@ -18,7 +31,8 @@ exports.createTicket = async (req, res) => {
       customer_phone: customer_phone || null,
       communication_channel: communication_channel || null,
       device_type: device_type || null,
-      issue_type: issue_type || null,
+      issue_category,
+      issue_type,
       issue_description: issue_description || null,
       agent_id,
       first_call_resolution: first_call_resolution === undefined ? null : !!first_call_resolution,
@@ -58,14 +72,27 @@ exports.getTicketById = async (req, res) => {
 
 // Update ticket by ID
 exports.updateTicket = async (req, res) => {
-  const { customer_phone, communication_channel, device_type, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
+  const { customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
   if (!agent_id) {
     return res.status(400).json({ error: 'agent_id is required.' });
   }
+  // Validate issue_category
+  const validCategories = ['App', 'IPTV'];
+  if (!validCategories.includes(issue_category)) {
+    return res.status(400).json({ error: 'Invalid issue_category. Must be App or IPTV.' });
+  }
+  // Validate issue_type based on category
+  const validTypes = {
+    App: ['Streaming', 'VOD', 'OTP', 'App', 'Other'],
+    IPTV: ['Subscription Issue', 'Dark Channels / Black Screen', 'Channel Not Loading', 'VOD', 'Streaming']
+  };
+  if (!validTypes[issue_category].includes(issue_type)) {
+    return res.status(400).json({ error: `Invalid issue_type for category ${issue_category}.` });
+  }
   try {
     const [result] = await pool.query(
-      'UPDATE tickets SET customer_phone = ?, communication_channel = ?, device_type = ?, issue_type = ?, issue_description = ?, agent_id = ?, first_call_resolution = ?, resolution_status = ?, end_time = ? WHERE ticket_id = ?',
-      [customer_phone || null, communication_channel || null, device_type || null, issue_type || null, issue_description || null, agent_id, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null, req.params.id]
+      'UPDATE tickets SET customer_phone = ?, communication_channel = ?, device_type = ?, issue_category = ?, issue_type = ?, issue_description = ?, agent_id = ?, first_call_resolution = ?, resolution_status = ?, end_time = ? WHERE ticket_id = ?',
+      [customer_phone || null, communication_channel || null, device_type || null, issue_category, issue_type, issue_description || null, agent_id, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null, req.params.id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Ticket not found.' });
     res.json({
@@ -73,7 +100,8 @@ exports.updateTicket = async (req, res) => {
       customer_phone: customer_phone || null,
       communication_channel: communication_channel || null,
       device_type: device_type || null,
-      issue_type: issue_type || null,
+      issue_category,
+      issue_type,
       issue_description: issue_description || null,
       agent_id,
       first_call_resolution: first_call_resolution === undefined ? null : !!first_call_resolution,
