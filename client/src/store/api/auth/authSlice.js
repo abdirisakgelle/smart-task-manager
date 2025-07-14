@@ -1,7 +1,23 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { v4 as uuidv4 } from "uuid";
 
-const storedUser = JSON.parse(localStorage.getItem("user"));
+// Safe localStorage parsing to prevent JSON.parse errors
+const getStoredUser = () => {
+  try {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
+      return JSON.parse(storedUser);
+    }
+  } catch (error) {
+    console.error("Error parsing stored user:", error);
+    // Clear corrupted data
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+  }
+  return null;
+};
+
+const storedUser = getStoredUser();
 
 export const authSlice = createSlice({
   name: "auth",
