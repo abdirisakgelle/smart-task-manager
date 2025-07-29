@@ -5,11 +5,7 @@
 
 // Dynamic API URL generator that works across different environments
 export const getApiUrl = (endpoint) => {
-  if (process.env.NODE_ENV === 'development') {
-    const hostname = window.location.hostname;
-    return `http://${hostname}:3000/api${endpoint}`;
-  }
-  // In production, use relative URLs
+  // Always use relative URLs to leverage Vite's proxy in development
   return `/api${endpoint}`;
 };
 

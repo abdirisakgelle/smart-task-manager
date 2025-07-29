@@ -62,6 +62,11 @@ async function initializeDatabase() {
     
     console.log('Database initialization completed!');
     
+    // Initialize notifications system
+    console.log('Initializing notifications system...');
+    const { initNotifications } = require('./init-notifications');
+    await initNotifications();
+    
   } catch (error) {
     console.error('Error initializing database:', error);
   } finally {

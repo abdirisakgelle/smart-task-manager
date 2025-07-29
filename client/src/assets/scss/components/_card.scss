@@ -1,17 +1,19 @@
 .card {
-  @apply rounded-lg bg-white dark:bg-gray-800    shadow-card;
+  @apply rounded-lg bg-white dark:bg-gray-800 shadow-card;
 }
 
 .card-title {
-  @apply font-medium  capitalize   text-base  text-gray-900 dark:text-white;
+  @apply font-medium capitalize text-base text-gray-900 dark:text-white;
 }
+
 .card-subtitle {
-  @apply text-sm   text-gray-400 dark:text-gray-300 mt-1;
+  @apply text-sm text-gray-400 dark:text-gray-300 mt-1;
 }
 
 .card-header {
   @apply flex items-center justify-between px-5 pt-4 border-b-2 border-[#D2232A] bg-white dark:bg-gray-900;
 }
+
 .card-header:not(.no-border) {
   @apply border-b border-indigo-50 dark:border-gray-700 pb-4;
 }
@@ -28,4 +30,22 @@
 
 .card-badge, .card-highlight {
   @apply bg-[#D2232A] text-white rounded px-2 py-1 text-xs font-semibold;
+}
+
+/* Chart container styles */
+.chart-container {
+  @apply w-full overflow-hidden;
+}
+
+.chart-container .apexcharts-canvas {
+  @apply w-full h-full;
+}
+
+/* Card body adjustments for charts */
+.card-body.chart-body {
+  @apply p-2;
+}
+
+.card-body.chart-body-lg {
+  @apply p-4;
 }

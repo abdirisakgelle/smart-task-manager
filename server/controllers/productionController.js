@@ -28,9 +28,18 @@ exports.createProduction = async (req, res) => {
 // Get all production records
 exports.getAllProduction = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM production ORDER BY production_id DESC'
-    );
+    const [rows] = await pool.query(`
+      SELECT 
+        p.*,
+        c.title as content_title,
+        c.script_status as content_script_status,
+        c.content_status as content_status,
+        e.name as editor_name
+      FROM production p
+      LEFT JOIN content c ON p.content_id = c.content_id
+      LEFT JOIN employees e ON p.editor_id = e.employee_id
+      ORDER BY p.production_id DESC
+    `);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

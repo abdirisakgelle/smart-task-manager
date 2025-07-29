@@ -1,24 +1,428 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
+import { PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useGetSocialMediaQuery, useCreateSocialMediaMutation, useDeleteSocialMediaMutation, useGetContentQuery } from '@/store/api/apiSlice';
 
 const SocialMedia = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPlatform, setFilterPlatform] = useState('all');
+  const [formData, setFormData] = useState({
+    content_id: '',
+    platforms: '',
+    post_type: 'video',
+    post_date: '',
+    caption: '',
+    status: 'draft',
+    approved: false,
+    notes: ''
+  });
+
+  // API hooks
+  const { data: socialMedia = [], isLoading, error, refetch } = useGetSocialMediaQuery();
+  const { data: content = [] } = useGetContentQuery();
+  const [createSocialMedia, { isLoading: isCreating }] = useCreateSocialMediaMutation();
+  const [deleteSocialMedia, { isLoading: isDeleting }] = useDeleteSocialMediaMutation();
+
+  const filteredSocialMedia = socialMedia.filter(item => {
+    const matchesSearch = (item.content_title && item.content_title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (item.caption && item.caption.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
+    const matchesPlatform = filterPlatform === 'all' || item.platforms.toLowerCase().includes(filterPlatform.toLowerCase());
+    
+    return matchesSearch && matchesStatus && matchesPlatform;
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createSocialMedia(formData).unwrap();
+      setFormData({
+        content_id: '',
+        platforms: '',
+        post_type: 'video',
+        post_date: '',
+        caption: '',
+        status: 'draft',
+        approved: false,
+        notes: ''
+      });
+      setShowModal(false);
+      refetch();
+    } catch (error) {
+      console.error('Failed to create social media post:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this social media post?')) {
+      try {
+        await deleteSocialMedia(id).unwrap();
+        refetch();
+      } catch (error) {
+        console.error('Failed to delete social media post:', error);
+      }
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const statusClasses = {
+      draft: 'bg-gray-100 text-gray-800 border-gray-200',
+      scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
+      published: 'bg-green-100 text-green-800 border-green-200',
+      failed: 'bg-red-100 text-red-800 border-red-200',
+      pending_review: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    };
+    return `px-2 py-1 rounded-full text-xs font-medium border ${statusClasses[status] || statusClasses.draft}`;
+  };
+
+  const getPostTypeBadge = (type) => {
+    const typeClasses = {
+      video: 'bg-purple-100 text-purple-800 border-purple-200',
+      image: 'bg-pink-100 text-pink-800 border-pink-200',
+      carousel: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      story: 'bg-orange-100 text-orange-800 border-orange-200',
+      reel: 'bg-red-100 text-red-800 border-red-200'
+    };
+    return `px-2 py-1 rounded-full text-xs font-medium border ${typeClasses[type] || typeClasses.video}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-red-600 text-xl font-semibold mb-2">Error Loading Social Media</div>
+          <div className="text-gray-600 mb-4">Failed to load social media data. Please check your connection.</div>
+          <button 
+            onClick={() => refetch()} 
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 text-[#D2232A]">Social Media</h1>
-      
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Social Media Management</h1>
+          <p className="text-gray-600">Manage and track social media posts and campaigns</p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          <PlusIcon className="w-5 h-5 mr-2" />
+          Create New Post
+        </button>
+      </div>
+
+      {/* Filters */}
       <Card>
-        <div className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Social Media Management</h2>
-          <p className="text-gray-600 mb-4">
-            This page will contain the social media management functionality.
-          </p>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-blue-800">
-              <strong>Coming Soon:</strong> This feature is under development.
-            </p>
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="relative flex-1">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search posts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
           </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          >
+            <option value="all">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="published">Published</option>
+            <option value="failed">Failed</option>
+            <option value="pending_review">Pending Review</option>
+          </select>
+          <select
+            value={filterPlatform}
+            onChange={(e) => setFilterPlatform(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          >
+            <option value="all">All Platforms</option>
+            <option value="instagram">Instagram</option>
+            <option value="facebook">Facebook</option>
+            <option value="tiktok">TikTok</option>
+            <option value="youtube">YouTube</option>
+            <option value="twitter">Twitter</option>
+          </select>
         </div>
       </Card>
+
+      {/* Social Media Table */}
+      <Card>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Content
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Platforms
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Post Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Post Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Approved
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredSocialMedia.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                    No social media posts found
+                  </td>
+                </tr>
+              ) : (
+                filteredSocialMedia.map((item) => (
+                  <tr key={item.post_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{item.content_title || 'Unknown Content'}</div>
+                      <div className="text-sm text-gray-500 max-w-xs truncate">{item.caption}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.platforms}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={getPostTypeBadge(item.post_type)}>
+                        {item.post_type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={getStatusBadge(item.status)}>
+                        {item.status.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDate(item.post_date)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {item.approved ? (
+                        <CheckIcon className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <XMarkIcon className="w-5 h-5 text-red-600" />
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button className="text-blue-600 hover:text-blue-900">
+                          <EyeIcon className="w-5 h-5" />
+                        </button>
+                        <button className="text-yellow-600 hover:text-yellow-900">
+                          <PencilIcon className="w-5 h-5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(item.post_id)}
+                          disabled={isDeleting}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Modal for New Social Media Post */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Create New Social Media Post</h2>
+              <p className="text-sm text-gray-600 mt-1">Enter Post Information</p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              {/* Two Column Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Content *
+                  </label>
+                  <select
+                    required
+                    value={formData.content_id}
+                    onChange={(e) => setFormData({...formData, content_id: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="">Select Content</option>
+                    {content.map((item) => (
+                      <option key={item.content_id} value={item.content_id}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Platforms *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.platforms}
+                    onChange={(e) => setFormData({...formData, platforms: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="e.g., Instagram, Facebook, TikTok"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Post Type
+                  </label>
+                  <select 
+                    value={formData.post_type}
+                    onChange={(e) => setFormData({...formData, post_type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="video">Video</option>
+                    <option value="image">Image</option>
+                    <option value="carousel">Carousel</option>
+                    <option value="story">Story</option>
+                    <option value="reel">Reel</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Post Date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formData.post_date}
+                    onChange={(e) => setFormData({...formData, post_date: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select 
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="published">Published</option>
+                    <option value="pending_review">Pending Review</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.approved}
+                      onChange={(e) => setFormData({...formData, approved: e.target.checked})}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Approved</span>
+                  </label>
+                </div>
+              </div>
+              
+              {/* Full Width Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Caption
+                </label>
+                <textarea
+                  rows="4"
+                  value={formData.caption}
+                  onChange={(e) => setFormData({...formData, caption: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Write your post caption..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes
+                </label>
+                <textarea
+                  rows="3"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Add notes about this post..."
+                />
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {isCreating ? 'Creating...' : 'Create Post'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

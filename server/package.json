@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "init-db": "node scripts/init-db.js"
+    "init-db": "node scripts/init-db.js",
+    "init-tasks": "node scripts/init-tasks.js"
   },
   "keywords": [],
   "author": "",
@@ -14,12 +15,17 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.6.0",
-    "mysql2": "^3.14.1"
+    "morgan": "^1.10.1",
+    "mysql2": "^3.14.1",
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

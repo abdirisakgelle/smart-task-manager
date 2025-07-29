@@ -141,7 +141,7 @@ const TicketStates = ({ height = 340 }) => {
   };
 
   return (
-    <div className="p-4 flex flex-col items-center justify-center">
+    <div className="chart-container flex flex-col items-center justify-center">
       <Chart
         series={series}
         options={options}
@@ -149,7 +149,7 @@ const TicketStates = ({ height = 340 }) => {
         height={height}
       />
       {/* Ticket counts below the chart, centered */}
-      <div className="flex flex-row justify-center items-center gap-12 mt-6 w-full">
+      <div className="flex flex-row justify-center items-center gap-12 mt-4 w-full">
         <div className="text-center">
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">
             {closedTickets}

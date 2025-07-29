@@ -67,7 +67,11 @@ const TicketResolutionPie = ({ data, height = 335 }) => {
     ],
   };
 
-  return <Chart options={options} series={series} type="pie" height={height} />;
+  return (
+    <div className="chart-container">
+      <Chart options={options} series={series} type="pie" height={height} />
+    </div>
+  );
 };
 
 export default TicketResolutionPie; 

@@ -30,9 +30,15 @@ exports.createSocialMedia = async (req, res) => {
 // Get all social media posts
 exports.getAllSocialMedia = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM social_media ORDER BY post_id DESC'
-    );
+    const [rows] = await pool.query(`
+      SELECT 
+        sm.*,
+        c.title as content_title,
+        c.content_status as content_status
+      FROM social_media sm
+      LEFT JOIN content c ON sm.content_id = c.content_id
+      ORDER BY sm.post_id DESC
+    `);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -58,6 +58,10 @@ const ticketsRoutes = require('./routes/tickets');
 const supervisorReviewsRoutes = require('./routes/supervisorReviews');
 const followUpsRoutes = require('./routes/followUps');
 const dashboardRoutes = require('./routes/dashboard');
+const notificationsRoutes = require('./routes/notifications');
+const boardsRoutes = require('./routes/boards');
+const tasksRoutes = require('./routes/tasks');
+const { scheduleNotificationCleanup } = require('./utils/scheduler');
 
 app.use('/api/users', usersRoutes);
 app.use('/api/employees', employeesRoutes);
@@ -70,6 +74,9 @@ app.use('/api/tickets', ticketsRoutes);
 app.use('/api/supervisor-reviews', supervisorReviewsRoutes);
 app.use('/api/follow-ups', followUpsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/boards', boardsRoutes);
+app.use('/api/tasks', tasksRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello from backend!');
@@ -85,4 +92,7 @@ app.listen(PORT, '0.0.0.0', () => {
   // Set up periodic auto-insert check (every 2 hours instead of every hour)
   setInterval(autoInsertTicketsToReviews, 2 * 60 * 60 * 1000); // 2 hours
   console.log('Auto-insert scheduler started (runs every 2 hours)');
+  
+  // Start the notification cleanup scheduler
+  scheduleNotificationCleanup();
 }); 

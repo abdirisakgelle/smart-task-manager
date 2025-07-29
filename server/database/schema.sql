@@ -19,6 +19,20 @@ CREATE TABLE IF NOT EXISTS employees (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+  notification_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+        type ENUM('task_assignment', 'task_update', 'task_completion', 'script_assignment', 'idea_assignment', 'content_assignment', 'cast_assignment', 'system') DEFAULT 'task_assignment',
+  related_id INT NULL,
+  related_type VARCHAR(50) NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 -- Tickets table
 CREATE TABLE IF NOT EXISTS tickets (
   ticket_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,10 +55,14 @@ CREATE TABLE IF NOT EXISTS ideas (
   title VARCHAR(255) NOT NULL,
   contributor_id INT NOT NULL,
   script_writer_id INT NOT NULL,
-  status VARCHAR(50) NOT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'bank',
   script_deadline DATE,
-  priority VARCHAR(20),
-  notes TEXT
+  priority VARCHAR(20) DEFAULT 'medium',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (contributor_id) REFERENCES employees(employee_id),
+  FOREIGN KEY (script_writer_id) REFERENCES employees(employee_id)
 );
 
 -- Content table
@@ -53,8 +71,10 @@ CREATE TABLE IF NOT EXISTS content (
   idea_id INT NOT NULL,
   title VARCHAR(255) NOT NULL,
   script_status VARCHAR(50) NOT NULL,
+  content_status VARCHAR(50) NOT NULL DEFAULT 'in_progress',
   director_id INT NOT NULL,
   filming_date DATE,
+  cast_and_presenters TEXT,
   notes TEXT
 );
 
@@ -121,7 +141,38 @@ CREATE TABLE IF NOT EXISTS employee_assignments (
 );
 
 -- Add indexes for follow-ups performance
-CREATE INDEX idx_tickets_created_at ON tickets(created_at);
-CREATE INDEX idx_followups_ticket_id ON follow_ups(ticket_id);
-CREATE INDEX idx_supervisor_reviews_ticket_id ON supervisor_reviews(ticket_id);
-CREATE INDEX idx_supervisor_reviews_review_date ON supervisor_reviews(review_date); 
+CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON tickets(created_at);
+CREATE INDEX IF NOT EXISTS idx_followups_ticket_id ON follow_ups(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_supervisor_reviews_ticket_id ON supervisor_reviews(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_supervisor_reviews_review_date ON supervisor_reviews(review_date);
+
+-- Add indexes for notifications performance
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
+
+-- Boards table
+CREATE TABLE IF NOT EXISTS boards (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tasks table
+CREATE TABLE IF NOT EXISTS tasks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  board_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+  start_date DATE,
+  end_date DATE,
+  assign_data JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE
+);
+
+-- Add indexes for boards and tasks performance
+CREATE INDEX IF NOT EXISTS idx_tasks_board_id ON tasks(board_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at); 

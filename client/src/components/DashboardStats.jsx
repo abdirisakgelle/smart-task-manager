@@ -11,84 +11,141 @@ const formatTime = (minutes) => {
   return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 };
 
-
-
 const kpiCards = [
   // Call Center KPIs - Today's Performance
   {
     key: 'ticketsToday',
     label: 'Tickets Today',
     icon: 'ph:ticket',
-    color: 'text-indigo-500',
+    color: 'text-white',
+    bgColor: 'bg-purple-500',
     getValue: (call) => call.ticketsToday,
-    getDesc: (call) => `${call.ticketsDone} marked as Done`,
+    getPrev: (call) => call.ticketsYesterday,
+    getDesc: () => `Since yesterday`,
   },
   {
     key: 'avgResolutionTime',
-    label: 'Avg. Resolution Time',
+    label: 'Resolution Time',
     icon: 'ph:clock',
-    color: 'text-green-500',
-    getValue: (call) => formatTime(call.avgResolutionTime),
-    getDesc: () => 'For tickets resolved today',
+    color: 'text-white',
+    bgColor: 'bg-yellow-500',
+    getValue: (call) => call.avgResolutionTime,
+    getPrev: (call) => call.avgResolutionTimeYesterday,
+    getDesc: () => 'Since yesterday',
+    format: formatTime,
+    reverse: true, // Lower is better
   },
   {
     key: 'escalationCount',
     label: 'Escalations',
     icon: 'ph:arrow-elbow-down-right',
-    color: 'text-yellow-500',
+    color: 'text-white',
+    bgColor: 'bg-red-500',
     getValue: (call) => call.escalationCount,
-    getDesc: () => 'Tickets escalated to supervisors today',
+    getPrev: (call) => call.escalationCountYesterday,
+    getDesc: () => 'Since yesterday',
   },
   {
     key: 'reopenedTickets',
-    label: 'Reopened Tickets',
+    label: 'Reopened',
     icon: 'ph:arrow-clockwise',
-    color: 'text-orange-500',
+    color: 'text-white',
+    bgColor: 'bg-orange-500',
     getValue: (call) => call.reopenedTickets,
-    getDesc: () => 'Tickets reopened today',
+    getPrev: (call) => call.reopenedTicketsYesterday,
+    getDesc: () => 'Since yesterday',
+  },
+  // FCR Rate is not available for yesterday, so keep as is
+  {
+    key: 'fcrRate',
+    label: 'FCR Rate',
+    icon: 'ph:check-circle',
+    color: 'text-white',
+    bgColor: 'bg-green-500',
+    getValue: (fcr) => `${fcr.fcr_rate}%`,
+    getPrev: () => null,
+    getDesc: () => 'Since yesterday',
   },
   {
     key: 'customerSatisfaction',
-    label: 'Customer Satisfaction',
+    label: 'Satisfaction',
     icon: 'ph:heart',
-    color: 'text-purple-500',
+    color: 'text-white',
+    bgColor: 'bg-pink-500',
     getValue: (call) => `${call.satisfactionRate}%`,
-    getDesc: (call) => `${call.satisfactionCount}/${call.satisfactionTotal} satisfied today`,
+    getPrev: (call) => call.satisfactionRateYesterday,
+    getDesc: () => 'Since yesterday',
   },
   // Digital Media KPIs - Today's Performance
   {
     key: 'ideasExecuted',
     label: 'Ideas Generated',
     icon: 'ph:lightbulb',
-    color: 'text-yellow-500',
+    color: 'text-white',
+    bgColor: 'bg-indigo-500',
     getValue: (media) => media.ideasExecuted,
-    getDesc: () => 'Approved ideas today',
+    getPrev: (media) => media.ideasExecutedYesterday,
+    getDesc: () => 'Since yesterday',
   },
   {
     key: 'contentCompleted',
     label: 'Content Produced',
     icon: 'ph:file-text',
-    color: 'text-indigo-500',
+    color: 'text-white',
+    bgColor: 'bg-blue-500',
     getValue: (media) => media.contentCompleted,
-    getDesc: () => 'Contents produced today',
+    getPrev: (media) => media.contentCompletedYesterday,
+    getDesc: () => 'Since yesterday',
   },
   {
     key: 'avgProductionTime',
-    label: 'Productions Completed',
+    label: 'Productions',
     icon: 'ph:wrench',
-    color: 'text-green-500',
+    color: 'text-white',
+    bgColor: 'bg-teal-500',
     getValue: (media) => media.avgProductionTime,
-    getDesc: () => 'Productions completed today',
+    getPrev: (media) => media.avgProductionTimeYesterday,
+    getDesc: () => 'Since yesterday',
   },
   {
     key: 'postsPublishedToday',
     label: 'Posts Published',
     icon: 'ph:calendar',
-    color: 'text-pink-500',
+    color: 'text-white',
+    bgColor: 'bg-emerald-500',
     getValue: (media) => media.postsPublishedToday,
-    getDesc: () => 'Posts published today',
+    getPrev: (media) => media.postsPublishedYesterday,
+    getDesc: () => 'Since yesterday',
   },
 ];
+
+function getChangePercent(today, yesterday, reverse = false) {
+  if (yesterday === null || yesterday === undefined) return null;
+  if (today === null || today === undefined) return null;
+  if (yesterday === 0 && today === 0) return 0;
+  if (yesterday === 0) return 100;
+  let change = ((today - yesterday) / Math.abs(yesterday)) * 100;
+  if (reverse) change = -change;
+  return Math.round(change * 10) / 10;
+}
+
+function getChangeColor(change) {
+  if (change === null) return 'bg-gray-100 text-gray-500';
+  if (change > 0) return 'bg-green-100 text-green-700';
+  if (change < 0) return 'bg-red-100 text-red-700';
+  return 'bg-gray-100 text-gray-500';
+}
+
+function getArrowIcon(change) {
+  if (change === null) return null;
+  if (change > 0) return (
+    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>
+  );
+  if (change < 0) return (
+    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" /></svg>
+  );
+  return null;
+}
 
 const DashboardStats = () => {
   const [stats, setStats] = useState(null);
@@ -97,9 +154,6 @@ const DashboardStats = () => {
   const [error, setError] = useState(null);
   const [fcr, setFcr] = useState({ fcr_rate: 0, fcr_tickets: 0, total_tickets: 0 });
   const [loadingFcr, setLoadingFcr] = useState(true);
-  const [otherStats, setOtherStats] = useState(null); // Placeholder for other stats
-
-
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -133,7 +187,6 @@ const DashboardStats = () => {
         setFcr(fcrData);
       } catch (err) {
         console.error('Error fetching FCR data:', err);
-        // Don't set error state for FCR as it's secondary data
       } finally {
         setLoadingFcr(false);
       }
@@ -144,16 +197,17 @@ const DashboardStats = () => {
 
   if (loading) {
     return (
-      <div className="grid xl:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-5">
-        {[...Array(9)].map((_, i) => (
-          <Card key={i}>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {[...Array(10)].map((_, i) => (
+          <Card key={i} className="p-4 border border-gray-200 shadow-sm">
             <div className="animate-pulse">
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-start mb-3">
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-8 w-8 rounded-full bg-gray-200"></div>
+                <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
               </div>
-              <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/4 mb-1"></div>
+              <div className="h-2 bg-gray-200 rounded w-2/3"></div>
             </div>
           </Card>
         ))}
@@ -163,11 +217,12 @@ const DashboardStats = () => {
 
   if (error) {
     return (
-      <div className="grid xl:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-5">
-        <Card>
-          <div className="text-center text-red-500">
-            <Icon icon="ph:warning" className="text-2xl mb-2" />
-            <p>Error loading stats: {error}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card className="col-span-full border border-red-200 shadow-sm">
+          <div className="text-center text-red-600 p-4">
+            <Icon icon="ph:warning" className="text-2xl mb-2 mx-auto" />
+            <p className="font-semibold text-sm mb-1">Error loading stats</p>
+            <p className="text-gray-600 text-xs">{error}</p>
           </div>
         </Card>
       </div>
@@ -181,48 +236,57 @@ const DashboardStats = () => {
   const call = adminKPIs.callCenter;
   const media = adminKPIs.digitalMedia;
 
-  // Unified grid of 9 KPI cards
   return (
-    <div className="grid xl:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-5">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
       {kpiCards.map((kpi, idx) => {
-        // Use callCenter for first 5, digitalMedia for last 4
-        const data = idx < 5 ? call : media;
-        // Insert FCR Rate card after Reopened Tickets (idx === 3)
-        if (idx === 4) {
-          return [
-            // FCR Rate Card
-            <Card key="fcr-rate">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-gray-700 dark:text-gray-200">FCR Rate</span>
-                <Icon icon="ph:check-circle" className="text-[#D2232A] text-2xl" />
-              </div>
-              {loadingFcr ? (
-                <div className="text-lg font-bold text-gray-400">Loading...</div>
-              ) : (
-                <>
-                  <div className="text-2xl font-bold mb-1 text-[#D2232A]">{fcr.fcr_rate}%</div>
-                  <div className="text-xs text-gray-500">{fcr.fcr_tickets} of {fcr.total_tickets} tickets</div>
-                </>
-              )}
-            </Card>,
-            <Card key={kpi.key}>
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-gray-700 dark:text-gray-200">{kpi.label}</span>
-                <Icon icon={kpi.icon} className={`${kpi.color} text-2xl`} />
-              </div>
-              <div className="text-2xl font-bold mb-1">{kpi.getValue(data)}</div>
-              <div className="text-xs text-gray-500">{kpi.getDesc(data)}</div>
-            </Card>
-          ];
+        // Determine data source based on card type
+        let data, prev, reverse, format;
+        if (kpi.key === 'fcrRate') {
+          data = fcr;
+          prev = null;
+          reverse = false;
+          format = null;
+        } else if (idx < 6) {
+          data = call;
+          prev = kpi.getPrev ? kpi.getPrev(call) : null;
+          reverse = kpi.reverse || false;
+          format = kpi.format;
+        } else {
+          data = media;
+          prev = kpi.getPrev ? kpi.getPrev(media) : null;
+          reverse = kpi.reverse || false;
+          format = kpi.format;
         }
+        const value = kpi.getValue(data);
+        const displayValue = format ? format(value) : value;
+        const change = getChangePercent(value, prev, reverse);
+        const changeColor = getChangeColor(change);
+        const arrowIcon = getArrowIcon(change);
         return (
-          <Card key={kpi.key}>
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-medium text-gray-700 dark:text-gray-200">{kpi.label}</span>
-              <Icon icon={kpi.icon} className={`${kpi.color} text-2xl`} />
+          <Card 
+            key={kpi.key} 
+            className="p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 bg-white"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <h3 className="font-semibold text-gray-700 text-xs">
+                {kpi.label}
+              </h3>
+              <div className={`w-8 h-8 ${kpi.bgColor} rounded-full flex items-center justify-center`}>
+                <Icon icon={kpi.icon} className={`${kpi.color} text-sm`} />
+              </div>
             </div>
-            <div className="text-2xl font-bold mb-1">{kpi.getValue(data)}</div>
-            <div className="text-xs text-gray-500">{kpi.getDesc(data)}</div>
+            <div className="text-xl font-bold text-gray-900 mb-2">
+              {loadingFcr && kpi.key === 'fcrRate' ? '...' : displayValue}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${changeColor}`}>
+                {arrowIcon}
+                {change !== null ? `${change > 0 ? '+' : ''}${change}%` : '--'}
+              </span>
+              <span className="text-xs text-gray-500 font-medium">
+                {kpi.getDesc(data)}
+              </span>
+            </div>
           </Card>
         );
       })}

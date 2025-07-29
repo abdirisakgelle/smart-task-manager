@@ -84,6 +84,15 @@ export const menuItems = [
     icon: "ChartDonut",
     link: "/employee-analytics",
   },
+  {
+    isHeadr: true,
+    title: "Settings",
+  },
+  {
+    title: "Tasks",
+    icon: "CheckSquare",
+    link: "/tasks",
+  },
 ];
 
 export const topMenu = [

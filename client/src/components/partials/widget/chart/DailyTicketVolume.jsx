@@ -1,65 +1,24 @@
 import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import useDarkMode from "@/hooks/useDarkMode";
+import Icon from "@/components/ui/Icon";
 
-const DAY_LABELS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
-
-const DailyTicketVolume = ({ height = 400 }) => {
+const DailyTicketVolume = ({ height = 340 }) => {
+  const [isDark] = useDarkMode();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isDark] = useDarkMode();
 
   useEffect(() => {
     setLoading(true);
-    
-    fetch("/api/dashboard/daily-ticket-volume")
-      .then((res) => res.json())
-      .then((data) => {
-        const allZero = data.every((item) => item.total_tickets === 0);
-        if (allZero) {
-          return fetch("/api/dashboard/simple-ticket-volume");
-        } else {
-          setData(data);
-          setLoading(false);
-          return null;
-        }
+    fetch("http://localhost:3000/api/dashboard/daily-ticket-volume")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch daily ticket volume");
+        return res.json();
       })
-      .then((fallbackRes) => {
-        if (fallbackRes) {
-          return fallbackRes.json();
-        }
-        return null;
-      })
-      .then((fallbackData) => {
-        if (fallbackData) {
-          const allZero = fallbackData.every((item) => item.total_tickets === 0);
-          if (allZero) {
-            return fetch("/api/dashboard/all-ticket-volume");
-          } else {
-            setData(fallbackData);
-            setLoading(false);
-            return null;
-          }
-        }
-        return null;
-      })
-      .then((finalRes) => {
-        if (finalRes) {
-          return finalRes.json();
-        }
-        return null;
-      })
-      .then((finalData) => {
-        if (finalData) {
-          setData(finalData);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+      .then((d) => setData(d))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -73,58 +32,33 @@ const DailyTicketVolume = ({ height = 400 }) => {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64 text-red-600">
-        <p>Failed to load daily ticket volume: {error}</p>
+        <p>Failed to load ticket volume: {error}</p>
       </div>
     );
   }
 
-  // Map backend data to correct weekday (Sat to Fri)
-  // Build a map: { weekdayIndex: ticketCount }
-  const weekdayMap = {};
-  data.forEach((item) => {
-    const date = new Date(item.day);
-    // getDay(): 0=Sun, 1=Mon, ..., 6=Sat
-    // We want: 0=Sat, 1=Sun, ..., 6=Fri
-    let idx = date.getDay();
-    idx = idx === 6 ? 0 : idx + 1; // Sat=0, Sun=1, ..., Fri=6
-    weekdayMap[idx] = item.total_tickets;
-  });
-
-  // Build chart data for Sat-Fri
-  const chartDataArr = [];
-  for (let i = 0; i < 7; i++) {
-    chartDataArr.push(weekdayMap[i] || 0);
-  }
-
-  // Check if all data is zero
-  const allZero = chartDataArr.every((val) => val === 0);
-  if (allZero) {
+  if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
-        <div className="text-center">
-          <p className="text-lg font-semibold">No Data Yet</p>
-          <p className="text-sm">No tickets found in the database</p>
-          <p className="text-xs mt-2">Check server console for debug info</p>
-        </div>
+        <p>No data available</p>
       </div>
     );
   }
 
-  const chartData = [
+  // Prepare chart data
+  const categories = data.map(item => item.dayName);
+  const series = [
     {
-      name: "Total Tickets",
-      data: chartDataArr,
+      name: "Tickets",
+      data: data.map(item => item.total_tickets),
     },
   ];
 
   const options = {
     chart: {
-      type: "bar",
-      height: height,
       toolbar: {
         show: false,
       },
-      background: "transparent",
       animations: {
         enabled: true,
         easing: 'easeinout',
@@ -138,123 +72,219 @@ const DailyTicketVolume = ({ height = 400 }) => {
           speed: 350
         }
       },
+      // Add proper margins to prevent cutoff
+      margin: {
+        top: 20,
+        right: 50,
+        bottom: 60,
+        left: 20
+      },
+      // Ensure chart fits properly
+      width: '100%',
+      height: '100%',
     },
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: "60%",
+        endingShape: "rounded",
+        columnWidth: "40%",
         borderRadius: 6,
+        distributed: false,
         dataLabels: {
-          position: "top",
+          position: 'top',
         },
       },
     },
-    colors: ["#D2232A"],
+    colors: ["#D2232A"], // Brand red color
     dataLabels: {
       enabled: true,
       formatter: function (val) {
-        return val > 0 ? val : '';
+        return val;
+      },
+      style: {
+        fontSize: '12px',
+        fontWeight: 600,
+        colors: [isDark ? "#E2E8F0" : "#374151"]
       },
       offsetY: -10,
-      style: {
-        fontSize: "14px",
-        fontWeight: "600",
-        colors: ["#374151"],
-      },
+    },
+    legend: {
+      show: false,
     },
     stroke: {
       show: true,
       width: 2,
       colors: ["transparent"],
     },
-    xaxis: {
-      categories: DAY_LABELS,
-      labels: {
-        style: {
-          colors: isDark ? "#ffffff" : "#374151",
-          fontSize: "14px",
-          fontWeight: "600",
-        },
-      },
-      axisBorder: {
-        show: true,
-        color: isDark ? "#374151" : "#e5e7eb",
-      },
-      axisTicks: {
-        show: true,
-        color: isDark ? "#374151" : "#e5e7eb",
-      },
-    },
-    yaxis: {
-      title: {
-        text: "Number of Tickets",
-        style: {
-          color: isDark ? "#ffffff" : "#374151",
-          fontSize: "16px",
-          fontWeight: "600",
-        },
-      },
-      labels: {
-        style: {
-          colors: isDark ? "#ffffff" : "#374151",
-          fontSize: "14px",
-          fontWeight: "500",
-        },
-        formatter: function (val) {
-          return val % 5 === 0 ? val : '';
-        },
-      },
-      min: 0,
-      max: Math.max(Math.ceil(Math.max(...chartDataArr) / 5) * 5, 10),
-      tickAmount: Math.max(Math.ceil(Math.max(...chartDataArr) / 5) * 2, 4),
-    },
-    fill: {
-      opacity: 1,
-      colors: ["#D2232A"],
-    },
-    tooltip: {
-      y: {
-        formatter: function (val) {
-          return val + " tickets";
-        },
-      },
-      theme: isDark ? "dark" : "light",
-      style: {
-        fontSize: '14px',
-      },
-      x: {
-        formatter: function (val, opts) {
-          return DAY_LABELS[opts.dataPointIndex] + " - " + val + " tickets";
-        }
-      }
-    },
     grid: {
       borderColor: isDark ? "#374151" : "#e5e7eb",
       strokeDashArray: 4,
       xaxis: {
         lines: {
-          show: false
-        }
+          show: true,
+        },
       },
       yaxis: {
         lines: {
-          show: true
-        }
-      }
+          show: true,
+        },
+      },
     },
-    legend: {
-      show: false,
+    xaxis: {
+      categories: categories,
+      labels: {
+        style: {
+          colors: isDark ? "#CBD5E1" : "#475569",
+          fontSize: '11px',
+          fontWeight: 500,
+        },
+        rotate: -45,
+        rotateAlways: false,
+        maxHeight: 60,
+      },
+      axisBorder: {
+        show: false,
+      },
+      axisTicks: {
+        show: false,
+      },
+      tickPlacement: 'on',
+      // Ensure proper spacing for all bars
+      range: undefined,
+      floating: false,
     },
+    yaxis: {
+      labels: {
+        style: {
+          colors: isDark ? "#CBD5E1" : "#475569",
+          fontSize: '12px',
+        },
+        formatter: function (val) {
+          return Math.round(val);
+        },
+      },
+      title: {
+        text: "Number of Tickets",
+        style: {
+          color: isDark ? "#CBD5E1" : "#475569",
+          fontSize: '14px',
+          fontWeight: 600,
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+      type: "gradient",
+      gradient: {
+        shade: "light",
+        type: "vertical",
+        shadeIntensity: 0.25,
+        gradientToColors: undefined,
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 0.85,
+        stops: [50, 0, 100],
+      },
+    },
+    tooltip: {
+      enabled: true,
+      theme: isDark ? 'dark' : 'light',
+      style: {
+        fontSize: '14px',
+      },
+      y: {
+        formatter: function (val) {
+          return `${val} tickets`;
+        },
+      },
+      x: {
+        formatter: function (val, opts) {
+          const dataPoint = data[opts.dataPointIndex];
+          return `${dataPoint.dayName} (${dataPoint.day})`;
+        },
+      },
+    },
+    responsive: [
+      {
+        breakpoint: 768,
+        options: {
+          chart: {
+            margin: {
+              top: 20,
+              right: 60,
+              bottom: 70,
+              left: 20
+            },
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: "45%",
+            },
+          },
+          xaxis: {
+            labels: {
+              rotate: -45,
+              fontSize: '10px',
+            },
+          },
+        },
+      },
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            margin: {
+              top: 20,
+              right: 70,
+              bottom: 80,
+              left: 20
+            },
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: "50%",
+            },
+          },
+          xaxis: {
+            labels: {
+              rotate: -45,
+              fontSize: '9px',
+            },
+          },
+        },
+      },
+    ],
   };
 
+  // Calculate summary statistics for the tooltip
+  const totalTickets = data.reduce((sum, item) => sum + item.total_tickets, 0);
+  const maxTickets = Math.max(...data.map(item => item.total_tickets));
+  const minTickets = Math.min(...data.map(item => item.total_tickets));
+  const avgTickets = data.length > 0 ? Math.round(totalTickets / data.length) : 0;
+  const busiestDay = data.find(item => item.total_tickets === maxTickets);
+  const quietestDay = data.find(item => item.total_tickets === minTickets);
+
   return (
-    <div className="w-full p-4">
+    <div className="chart-container w-full">
+      {/* Chart */}
       <Chart
         options={options}
-        series={chartData}
+        series={series}
         type="bar"
-        height={height}
+        height={height - 100}
       />
+
+      {/* Summary Stats */}
+      <div className="flex items-center justify-center gap-8 mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-gray-800 dark:text-white">{totalTickets}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Total Tickets</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-gray-800 dark:text-white">{avgTickets}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Avg/Day</div>
+        </div>
+      </div>
     </div>
   );
 };

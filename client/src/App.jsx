@@ -98,6 +98,7 @@ const TicketAnalyticsPage = lazy(() => import("./pages/ticket-analytics"));
 const ContentAnalyticsPage = lazy(() => import("./pages/content-analytics"));
 const EmployeeAnalyticsPage = lazy(() => import("./pages/employee-analytics"));
 const UsersPage = lazy(() => import("./pages/users"));
+const TasksPage = lazy(() => import("./pages/tasks"));
 
 function App() {
   return (
@@ -112,6 +113,7 @@ function App() {
 
             {/* Administration pages */}
             <Route path="users" element={<UsersPage />} />
+            <Route path="tasks" element={<TasksPage />} />
 
             {/* App pages */}
             <Route path="todos" element={<TodoPage />} />

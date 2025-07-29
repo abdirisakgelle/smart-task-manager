@@ -8,7 +8,7 @@ import {
 } from "./app/factory";
 import { profileUser, contacts, chats, calendarEvents } from "./app/data";
 import todoServerConfig from "./app/todoServer";
-import boardServerConfig from "./app/boardServer";
+// import boardServerConfig from "./app/boardServer";
 import authServerConfig from "./auth/authServer";
 import contactServerConfig from "./app/chatServer";
 import calendarServerConfig from "./app/calendar";
@@ -238,7 +238,7 @@ createServer({
     // });
 
     todoServerConfig(this);
-    boardServerConfig(this);
+    // boardServerConfig(this);
     authServerConfig(this);
     contactServerConfig(this);
     calendarServerConfig(this);

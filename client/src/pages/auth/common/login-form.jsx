@@ -115,15 +115,17 @@ const LoginForm = () => {
         isLoading={isLoading}
       />
       
-      {/* Demo credentials info */}
+      {/* Actual Database Users Info */}
       <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">
-          Demo Credentials:
+          Real System Users:
         </p>
         <div className="text-xs text-blue-500 dark:text-blue-300 space-y-1">
-          <p>Admin: admin / admin123</p>
-          <p>User: user / user123</p>
-          <p>Manager: manager / manager123</p>
+          <p><strong>Admin:</strong> admin / admin123</p>
+          <p><strong>Admin:</strong> gelle / 123</p>
+          <p><strong>Digital Media:</strong> harun / 123</p>
+          <p><strong>Supervisor:</strong> mudalib / 123</p>
+          <p><strong>Agents:</strong> abdifitah, abdihafid, horiyo, sharmaake, osmaan / 123</p>
         </div>
       </div>
     </form>
