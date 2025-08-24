@@ -1,10 +1,11 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
-const pool = mysql.createPool({
+// Read-Write pool for transactions and write operations
+const rwPool = mysql.createPool({
   host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  user: process.env.DB_USER || process.env.DB_USER_RW,
+  password: process.env.DB_PASSWORD || process.env.DB_PASS,
   database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
@@ -14,4 +15,21 @@ const pool = mysql.createPool({
   // Note: Only use this if your app is only for Somalia users
 });
 
-module.exports = pool; 
+// Read-Only pool for queries
+const roPool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER_RO || process.env.DB_USER,
+  password: process.env.DB_PASS_RO || process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 15,
+  queueLimit: 0,
+  timezone: '+03:00',
+});
+
+// Default export for backward compatibility
+module.exports = rwPool;
+
+// Named exports for specific use cases
+module.exports.rwPool = rwPool;
+module.exports.roPool = roPool; 
