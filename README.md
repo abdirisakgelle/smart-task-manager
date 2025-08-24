@@ -174,3 +174,35 @@ This project is licensed under the ISC License.
 ## 🆘 Support
 
 For support and questions, please open an issue in the GitHub repository. 
+
+## Content Production Pipeline (Nasiye Smart Task Manager)
+
+- Stages: Idea → Script → Production → Social (inferred in code)
+- Stage inference query uses downstream presence of `content`, `production`, `social_media`.
+
+### Backend Endpoints
+- GET `/api/ideas?stage=Idea|Script|Production|Social` (paginated via `limit` and `page`)
+- GET `/api/ideas/:id` → returns `{ idea, content?, production?, social_media?, stage }`
+- POST `/api/ideas/:id/move-forward` → transactional, idempotent advance with body `{ note?, actorId? }`
+
+### RBAC
+- JWT required. Roles from `users.role`.
+- Move-forward allowed for `admin|manager|media`.
+
+### DB Access
+- RO/RW pools in `server/db/index.js` using `.env` credentials. No DDL.
+
+### Validation
+- Idea→Script: require non-empty idea title.
+- Script→Production: `content.title` present and `script_status` ∈ {draft,in progress,completed}.
+- Production→Social: `production_status` != blocked; sets completion_date.
+- Social→Publish: status -> published, approved=TRUE.
+
+### Frontend
+- Pages: `new-creative-ideas`, `content-management`, `production-workflow`, `social-media` list by stage and show a primary Move Forward button.
+- Components: `StageBadge`, `PipelineBreadcrumb`, `MoveForwardButton`.
+
+### Tests
+- Stage inference unit tests for all combinations.
+- Idempotent move-forward double-click creates no duplicates.
+- Integration: move across all stages; detect `ALREADY_EXISTS` when social already exists. 

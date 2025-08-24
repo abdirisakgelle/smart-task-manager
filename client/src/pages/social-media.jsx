@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useGetSocialMediaQuery, useCreateSocialMediaMutation, useDeleteSocialMediaMutation, useGetContentQuery } from '@/store/api/apiSlice';
+import { useGetIdeasQuery, useCreateSocialMediaMutation, useDeleteSocialMediaMutation, useGetContentQuery } from '@/store/api/apiSlice';
+import MoveForwardButton from '@/components/MoveForwardButton';
 
 const SocialMedia = () => {
   const [showModal, setShowModal] = useState(false);
@@ -20,7 +21,7 @@ const SocialMedia = () => {
   });
 
   // API hooks
-  const { data: socialMedia = [], isLoading, error, refetch } = useGetSocialMediaQuery();
+  const { data: socialMedia = [], isLoading, error, refetch } = useGetIdeasQuery({ stage: 'Social' });
   const { data: content = [] } = useGetContentQuery();
   const [createSocialMedia, { isLoading: isCreating }] = useCreateSocialMediaMutation();
   const [deleteSocialMedia, { isLoading: isDeleting }] = useDeleteSocialMediaMutation();
