@@ -42,6 +42,16 @@ export const apiSlice = createApi({
       // Refetch on reconnect
       refetchOnReconnect: true,
     }),
+    getIdeaDetail: builder.query({
+      query: (id) => ({ url: `/ideas/${id}` }),
+    }),
+    moveForwardIdea: builder.mutation({
+      query: ({ id, body }) => ({
+        url: `/ideas/${id}/move-forward`,
+        method: 'POST',
+        body: body || {},
+      }),
+    }),
     createIdea: builder.mutation({
       query: (body) => ({
         url: '/ideas',
@@ -222,6 +232,8 @@ export const apiSlice = createApi({
 
 export const { 
   useGetIdeasQuery, 
+  useGetIdeaDetailQuery,
+  useMoveForwardIdeaMutation,
   useCreateIdeaMutation, 
   useUpdateIdeaMutation, 
   useDeleteIdeaMutation, 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useGetIdeasQuery, useCreateIdeaMutation, useDeleteIdeaMutation, useGetAllEmployeesQuery } from '@/store/api/apiSlice';
+import MoveForwardButton from '@/components/MoveForwardButton';
 
 const NewCreativeIdeas = () => {
   const [showModal, setShowModal] = useState(false);
@@ -21,7 +22,7 @@ const NewCreativeIdeas = () => {
   });
 
   // API hooks - using real database data only
-  const { data: ideas = [], isLoading, error, refetch } = useGetIdeasQuery();
+  const { data: ideas = [], isLoading, error, refetch } = useGetIdeasQuery({ stage: 'Idea' });
   const { data: employees = [], isLoading: employeesLoading, error: employeesError } = useGetAllEmployeesQuery();
   const [createIdea, { isLoading: isCreating }] = useCreateIdeaMutation();
   const [deleteIdea, { isLoading: isDeleting }] = useDeleteIdeaMutation();
@@ -292,7 +293,8 @@ const NewCreativeIdeas = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 items-center">
+                          <MoveForwardButton ideaId={idea.idea_id} onDone={refetch} />
                           <button 
                             onClick={() => handleViewIdea(idea)}
                             className="text-blue-600 hover:text-blue-900"

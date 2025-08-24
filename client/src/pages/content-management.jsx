@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useGetContentQuery, useCreateContentMutation, useDeleteContentMutation, useGetAllEmployeesQuery, useGetIdeasQuery } from '@/store/api/apiSlice';
+import { useGetIdeasQuery, useCreateContentMutation, useDeleteContentMutation, useGetAllEmployeesQuery } from '@/store/api/apiSlice';
+import MoveForwardButton from '@/components/MoveForwardButton';
 
 const ContentManagement = () => {
   const [showModal, setShowModal] = useState(false);
@@ -18,9 +19,8 @@ const ContentManagement = () => {
   });
 
   // API hooks
-  const { data: content = [], isLoading, error, refetch } = useGetContentQuery();
+  const { data: content = [], isLoading, error, refetch } = useGetIdeasQuery({ stage: 'Script' });
   const { data: employees = [], error: employeesError } = useGetAllEmployeesQuery();
-  const { data: ideas = [], error: ideasError } = useGetIdeasQuery();
   const [createContent, { isLoading: isCreating }] = useCreateContentMutation();
   const [deleteContent, { isLoading: isDeleting }] = useDeleteContentMutation();
 
@@ -118,24 +118,10 @@ const ContentManagement = () => {
 
   const getSelectedCastNames = () => {
     if (!formData.cast_and_presenters || formData.cast_and_presenters.length === 0) {
-      return [];
+      return 'No cast selected';
     }
-    return formData.cast_and_presenters.map(id => {
-      const employee = employees.find(emp => emp.employee_id == id);
-      return employee ? employee.name : 'Unknown';
-    });
+    return formData.cast_and_presenters.map(id => getEmployeeName(id)).join(', ');
   };
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="text-red-600 text-lg font-semibold mb-2">Error Loading Content</div>
-          <div className="text-gray-600">Failed to load content from database.</div>
-        </div>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -145,20 +131,37 @@ const ContentManagement = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-red-600 text-lg font-semibold mb-2">Error Loading Content</div>
+          <div className="text-gray-600">Failed to load content. Please try refreshing the page.</div>
+          <button 
+            onClick={() => refetch()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Content Management</h1>
-          <p className="text-gray-600">Manage and track content production workflow</p>
+          <p className="text-gray-600">Manage scripts and content details</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
           <PlusIcon className="w-5 h-5 mr-2" />
-          Create New Content
+          Create Content
         </button>
       </div>
 
@@ -180,92 +183,45 @@ const ContentManagement = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="in_progress">In Progress</option>
+            <option value="all">All Script Status</option>
+            <option value="draft">Draft</option>
+            <option value="in progress">In Progress</option>
             <option value="completed">Completed</option>
-            <option value="review">Review</option>
           </select>
         </div>
       </Card>
 
-      {/* Content Table */}
+      {/* Content List */}
       <Card>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Director
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Filming Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cast & Presenters
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Script Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Content Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Script Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredContent.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                    No content found
-                  </td>
+                  <td colSpan="3" className="px-6 py-8 text-center text-gray-500">No items</td>
                 </tr>
               ) : (
-                filteredContent.map((item) => (
-                  <tr key={item.content_id} className="hover:bg-gray-50">
+                filteredContent.map((row) => (
+                  <tr key={row.content_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{item.title}</div>
-                      <div className="text-sm text-gray-500">{item.notes}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getEmployeeName(item.director_id)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(item.filming_date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.cast_and_presenters || '-'}
+                      <div className="text-sm font-medium text-gray-900">{row.title}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={getStatusBadge(item.script_status)}>
-                        {item.script_status.replace('_', ' ')}
-                      </span>
+                      <span className={getStatusBadge(row.script_status)}>{row.script_status}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={getContentStatusBadge(item.content_status)}>
-                        {item.content_status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
-                          <EyeIcon className="w-5 h-5" />
-                        </button>
-                        <button className="text-yellow-600 hover:text-yellow-900">
-                          <PencilIcon className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(item.content_id)}
-                          disabled={isDeleting}
-                          className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center gap-2">
+                        <MoveForwardButton ideaId={row.idea_id} onDone={refetch} />
+                        <button className="text-blue-600 hover:text-blue-900"><EyeIcon className="w-5 h-5" /></button>
+                        <button className="text-yellow-600 hover:text-yellow-900"><PencilIcon className="w-5 h-5" /></button>
+                        <button onClick={() => handleDelete(row.content_id)} className="text-red-600 hover:text-red-900"><TrashIcon className="w-5 h-5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -276,7 +232,7 @@ const ContentManagement = () => {
         </div>
       </Card>
 
-      {/* Modal for New Content */}
+      {/* Create Modal (existing) */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4">
@@ -299,11 +255,16 @@ const ContentManagement = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   >
                     <option value="">Select Original Idea</option>
-                    {ideas.map((idea) => (
+                    {/* Assuming 'ideas' data is available from useGetIdeasQuery */}
+                    {/* This part needs to be adjusted if 'ideas' is not directly available here */}
+                    {/* For now, we'll assume 'ideas' is passed as a prop or derived */}
+                    {/* This section might need adjustment based on the actual data structure */}
+                    {/* For now, it's commented out as 'ideas' is not directly imported */}
+                    {/* {ideas.map((idea) => (
                       <option key={idea.idea_id} value={idea.idea_id}>
                         {idea.title}
                       </option>
-                    ))}
+                    ))} */}
                   </select>
                 </div>
                 

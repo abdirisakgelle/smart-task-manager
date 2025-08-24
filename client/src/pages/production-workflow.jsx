@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useGetProductionQuery, useCreateProductionMutation, useDeleteProductionMutation, useGetProductionEmployeesQuery, useGetContentQuery } from '@/store/api/apiSlice';
+import { useGetIdeasQuery, useCreateProductionMutation, useDeleteProductionMutation, useGetProductionEmployeesQuery, useGetContentQuery } from '@/store/api/apiSlice';
+import MoveForwardButton from '@/components/MoveForwardButton';
 
 const ProductionWorkflow = () => {
   const [showModal, setShowModal] = useState(false);
@@ -17,15 +18,15 @@ const ProductionWorkflow = () => {
   });
 
   // API hooks
-  const { data: production = [], isLoading, error, refetch } = useGetProductionQuery();
+  const { data: production = [], isLoading, error, refetch } = useGetIdeasQuery({ stage: 'Production' });
   const { data: employees = [] } = useGetProductionEmployeesQuery();
   const { data: content = [] } = useGetContentQuery();
   const [createProduction, { isLoading: isCreating }] = useCreateProductionMutation();
   const [deleteProduction, { isLoading: isDeleting }] = useDeleteProductionMutation();
 
   const filteredProduction = production.filter(item => {
-    const matchesSearch = (item.content_title && item.content_title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (item.editor_name && item.editor_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (item.content_title && item.content_title.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = filterStatus === 'all' || item.production_status === filterStatus;
     
     return matchesSearch && matchesStatus;
@@ -159,75 +160,31 @@ const ProductionWorkflow = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Content Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Editor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Production Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Completion Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Social Team
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredProduction.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                    No production records found
-                  </td>
+                  <td colSpan="3" className="px-6 py-8 text-center text-gray-500">No items</td>
                 </tr>
               ) : (
                 filteredProduction.map((item) => (
                   <tr key={item.production_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{item.content_title || 'Unknown Content'}</div>
-                      <div className="text-sm text-gray-500">{item.notes}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.editor_name || 'Unknown'}
+                      <div className="text-sm font-medium text-gray-900">{item.title || item.content_title}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={getStatusBadge(item.production_status)}>
-                        {item.production_status.replace('_', ' ')}
-                      </span>
+                      <span className={getStatusBadge(item.production_status || 'in_progress')}>{item.production_status || 'in_progress'}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(item.completion_date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                        item.sent_to_social_team 
-                          ? 'bg-green-100 text-green-800 border-green-200' 
-                          : 'bg-gray-100 text-gray-800 border-gray-200'
-                      }`}>
-                        {item.sent_to_social_team ? 'Sent' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
-                          <EyeIcon className="w-5 h-5" />
-                        </button>
-                        <button className="text-yellow-600 hover:text-yellow-900">
-                          <PencilIcon className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(item.production_id)}
-                          disabled={isDeleting}
-                          className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center gap-2">
+                        <MoveForwardButton ideaId={item.idea_id} onDone={refetch} />
+                        <button className="text-blue-600 hover:text-blue-900"><EyeIcon className="w-5 h-5" /></button>
+                        <button className="text-yellow-600 hover:text-yellow-900"><PencilIcon className="w-5 h-5" /></button>
+                        <button onClick={() => handleDelete(item.production_id)} className="text-red-600 hover:text-red-900"><TrashIcon className="w-5 h-5" /></button>
                       </div>
                     </td>
                   </tr>
