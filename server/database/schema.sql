@@ -4,9 +4,12 @@ CREATE TABLE IF NOT EXISTS users (
   employee_id INT NULL,
   username VARCHAR(50) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role ENUM('admin', 'user', 'manager') DEFAULT 'user',
+  role ENUM('admin', 'manager', 'agent', 'supervisor', 'media', 'follow_up', 'ceo') DEFAULT 'agent',
+  status ENUM('active', 'inactive') DEFAULT 'active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE SET NULL,
+  UNIQUE KEY unique_employee_user (employee_id)
 );
 
 -- Employees table
@@ -141,15 +144,15 @@ CREATE TABLE IF NOT EXISTS employee_assignments (
 );
 
 -- Add indexes for follow-ups performance
-CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON tickets(created_at);
-CREATE INDEX IF NOT EXISTS idx_followups_ticket_id ON follow_ups(ticket_id);
-CREATE INDEX IF NOT EXISTS idx_supervisor_reviews_ticket_id ON supervisor_reviews(ticket_id);
-CREATE INDEX IF NOT EXISTS idx_supervisor_reviews_review_date ON supervisor_reviews(review_date);
+CREATE INDEX idx_tickets_created_at ON tickets(created_at);
+CREATE INDEX idx_followups_ticket_id ON follow_ups(ticket_id);
+CREATE INDEX idx_supervisor_reviews_ticket_id ON supervisor_reviews(ticket_id);
+CREATE INDEX idx_supervisor_reviews_review_date ON supervisor_reviews(review_date);
 
 -- Add indexes for notifications performance
-CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
-CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX idx_notifications_created_at ON notifications(created_at);
 
 -- Boards table
 CREATE TABLE IF NOT EXISTS boards (
@@ -174,5 +177,5 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 -- Add indexes for boards and tasks performance
-CREATE INDEX IF NOT EXISTS idx_tasks_board_id ON tasks(board_id);
-CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at); 
+CREATE INDEX idx_tasks_board_id ON tasks(board_id);
+CREATE INDEX idx_tasks_created_at ON tasks(created_at); 

@@ -5,7 +5,7 @@ const RoundedInput = () => {
         <Textinput
             type="text"
             placeholder="Username"
-            className="rounded-[999px] px-4"
+            className="rounded-full px-4"
         />
     );
 };

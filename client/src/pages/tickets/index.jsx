@@ -31,6 +31,20 @@ const NewTicketsPage = () => {
       { value: 'Streaming', label: 'Streaming' },
     ],
   };
+  // Device type options in specified order
+  const deviceTypeOptions = [
+    { value: 'Huawei', label: 'Huawei' },
+    { value: 'iPhone', label: 'iPhone' },
+    { value: 'Samsung', label: 'Samsung' },
+    { value: 'IPTV', label: 'IPTV' },
+    { value: 'iPad', label: 'iPad' },
+    { value: 'Infinix', label: 'Infinix' },
+    { value: 'Redmi', label: 'Redmi' },
+    { value: 'Tecno', label: 'Tecno' },
+    { value: 'Oppo', label: 'Oppo' },
+    { value: 'Other', label: 'Other' },
+  ];
+  
   const issueCategories = [
     { value: 'App', label: 'App' },
     { value: 'IPTV', label: 'IPTV' },
@@ -46,6 +60,8 @@ const NewTicketsPage = () => {
     first_call_resolution: false,
   });
   const [formError, setFormError] = useState("");
+  const [customDevice, setCustomDevice] = useState("");
+  const [showCustomDeviceInput, setShowCustomDeviceInput] = useState(false);
   const formRef = useRef();
   const [viewTicket, setViewTicket] = useState(null);
   const [editTicket, setEditTicket] = useState(null);
@@ -68,7 +84,11 @@ const NewTicketsPage = () => {
         url = `/api/tickets/resolution-status/${statusFilter}`;
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       if (!response.ok) throw new Error("Failed to fetch tickets");
       let data = await response.json();
       
@@ -90,7 +110,12 @@ const NewTicketsPage = () => {
   const handleDelete = async (ticket_id) => {
     if (!window.confirm("Are you sure you want to delete this ticket?")) return;
     try {
-      const response = await fetch(`/api/tickets/${ticket_id}`, { method: "DELETE" });
+      const response = await fetch(`/api/tickets/${ticket_id}`, { 
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       if (!response.ok) throw new Error("Failed to delete ticket");
       setTickets((prev) => prev.filter((t) => t.ticket_id !== ticket_id));
     } catch (err) {
@@ -107,6 +132,33 @@ const NewTicketsPage = () => {
         [name]: value,
         first_call_resolution: false,
       }));
+      return;
+    }
+    // If device_type changes to IPTV, set issue_category to IPTV and reset issue_type
+    if (name === 'device_type' && value === 'IPTV') {
+      setForm((prev) => ({
+        ...prev,
+        device_type: value,
+        issue_category: 'IPTV',
+        issue_type: '',
+      }));
+      setShowCustomDeviceInput(false);
+      return;
+    }
+    // If device_type changes away from IPTV and issue_category is IPTV, reset to App
+    if (name === 'device_type' && value !== 'IPTV' && form.issue_category === 'IPTV') {
+      setForm((prev) => ({
+        ...prev,
+        device_type: value,
+        issue_category: 'App',
+        issue_type: '',
+      }));
+      setShowCustomDeviceInput(false);
+      return;
+    }
+    // Handle custom device selection
+    if (name === 'device_type' && value === 'custom') {
+      setShowCustomDeviceInput(true);
       return;
     }
     // If issue_category changes, reset issue_type
@@ -132,16 +184,31 @@ const NewTicketsPage = () => {
       setFormError("Please fill all required fields.");
       return;
     }
+    
+    // Check if user is logged in and has employee_id
+    if (!currentUser) {
+      setFormError("User not logged in. Please log in again.");
+      return;
+    }
+    
+    if (!currentUser.employee_id) {
+      setFormError("User account is not linked to an employee. Please contact administrator.");
+      return;
+    }
+    
     setCreating(true);
     try {
       const payload = {
         ...form,
-        agent_id: currentUser.employee_id, // Use employee_id for agent_id
         device_type: form.device_type || null,
       };
+      
       const response = await fetch("/api/tickets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify(payload),
       });
       if (!response.ok) {
@@ -169,12 +236,28 @@ const NewTicketsPage = () => {
 
   const handleView = (ticket) => setViewTicket(ticket);
   const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+  const normalizeIssueTypeByCategory = (issueType, category) => {
+    if (!issueType || !category || !issueTypeOptions[category]) return '';
+    const found = issueTypeOptions[category].find(
+      (opt) => String(opt.value).toLowerCase() === String(issueType).toLowerCase()
+    );
+    return found ? found.value : '';
+  };
   const handleEdit = (ticket) => {
+    // Derive a safe issue_category if missing
+    const derivedIssueCategory = ticket.issue_category
+      ? ticket.issue_category
+      : ticket.device_type === 'IPTV'
+        ? 'IPTV'
+        : 'App';
+
     setEditTicket({
       ...ticket,
       communication_channel: ticket.communication_channel || '',
       device_type: ticket.device_type || '',
-      issue_type: capitalize(ticket.issue_type) || '',
+      // Normalize to match available options (case-insensitive)
+      issue_type: normalizeIssueTypeByCategory(ticket.issue_type, derivedIssueCategory),
+      issue_category: derivedIssueCategory,
       resolution_status: ticket.resolution_status || 'Pending',
       agent_id: ticket.agent_id || '',
       first_call_resolution: !!ticket.first_call_resolution,
@@ -182,8 +265,39 @@ const NewTicketsPage = () => {
       issue_description: ticket.issue_description || '',
     });
   };
+  const handleCustomDeviceAdd = () => {
+    if (customDevice.trim()) {
+      setForm(prev => ({
+        ...prev,
+        device_type: customDevice.trim()
+      }));
+      setCustomDevice("");
+      setShowCustomDeviceInput(false);
+    }
+  };
+
   const handleEditChange = (e) => {
     const { name, value, type, checked } = e.target;
+    // If device_type changes to IPTV, set issue_category to IPTV and reset issue_type
+    if (name === 'device_type' && value === 'IPTV') {
+      setEditTicket((prev) => ({
+        ...prev,
+        device_type: value,
+        issue_category: 'IPTV',
+        issue_type: '',
+      }));
+      return;
+    }
+    // If device_type changes away from IPTV and issue_category is IPTV, reset to App
+    if (name === 'device_type' && value !== 'IPTV' && editTicket.issue_category === 'IPTV') {
+      setEditTicket((prev) => ({
+        ...prev,
+        device_type: value,
+        issue_category: 'App',
+        issue_type: '',
+      }));
+      return;
+    }
     if (name === 'issue_category') {
       setEditTicket((prev) => ({
         ...prev,
@@ -202,12 +316,14 @@ const NewTicketsPage = () => {
     try {
       const payload = {
         ...editTicket,
-        agent_id: currentUser.employee_id || editTicket.agent_id,
         device_type: editTicket.device_type || null,
       };
       const response = await fetch(`/api/tickets/${editTicket.ticket_id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("Failed to update ticket");
@@ -222,7 +338,7 @@ const NewTicketsPage = () => {
     { Header: "Ticket ID", accessor: "ticket_id", Cell: ({ value }) => `#${String(value).padStart(4, '0')}` },
     { Header: "Date", accessor: "created_at", Cell: ({ value }) => value ? new Date(value).toLocaleDateString('en-CA') : '' },
     { Header: "Customer Phone", accessor: "customer_phone" },
-    { Header: "Channel", accessor: "communication_channel" },
+    { Header: "Device Type", accessor: "device_type" },
     { Header: "Issue Type", accessor: "issue_type" },
     { Header: "Status", accessor: "resolution_status", Cell: ({ value }) => {
       const getStatusBadge = (status) => {
@@ -289,7 +405,10 @@ const NewTicketsPage = () => {
         try {
           const response = await fetch(`/api/tickets/${ticket_id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
             body: JSON.stringify(payload)
           });
           if (!response.ok) {
@@ -419,7 +538,7 @@ const NewTicketsPage = () => {
                 onClick={() => setShowModal(false)}
                 className="text-slate-400 hover:text-slate-500 transition-colors"
               >
-                <Icon icon="heroicons:x-mark" className="w-5 h-5" />
+                <Icon icon="heroicons:x-mark-20-solid" className="w-5 h-5" />
               </button>
             </div>
 
@@ -453,11 +572,12 @@ const NewTicketsPage = () => {
                       required
                     >
                       <option value="">Select channel</option>
-                      <option value="Phone">Phone</option>
-                      <option value="Email">Email</option>
-                      <option value="Chat">Chat</option>
-                      <option value="Social Media">Social Media</option>
-                      <option value="In Person">In Person</option>
+                      <option value="909 CC">909 CC</option>
+                      <option value="Whatsapp">Whatsapp</option>
+                      <option value="Messenger">Messenger</option>
+                      <option value="TikTok">TikTok</option>
+                      <option value="LiveChat">LiveChat</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                 </div>
@@ -467,19 +587,39 @@ const NewTicketsPage = () => {
                     <label className="block text-sm font-medium text-slate-600 mb-1.5">
                       Device Type
                     </label>
-                    <select
-                      name="device_type"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                      value={form.device_type}
-                      onChange={handleFormChange}
-                    >
-                      <option value="">Select device</option>
-                      <option value="Mobile">Mobile</option>
-                      <option value="Laptop">Laptop</option>
-                      <option value="Tablet">Tablet</option>
-                      <option value="Desktop">Desktop</option>
-                      <option value="Other">Other</option>
-                    </select>
+                    <div className="space-y-2">
+                      <select
+                        name="device_type"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        value={form.device_type}
+                        onChange={handleFormChange}
+                      >
+                        <option value="">Select device</option>
+                        {deviceTypeOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                        <option value="custom">+ Add Custom Device</option>
+                      </select>
+                      
+                      {showCustomDeviceInput && (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Enter custom device name"
+                            value={customDevice}
+                            onChange={(e) => setCustomDevice(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleCustomDeviceAdd}
+                            className="px-3 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1.5">
@@ -493,9 +633,11 @@ const NewTicketsPage = () => {
                       required
                     >
                       <option value="">Select category</option>
-                      {issueCategories.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
+                      {issueCategories
+                        .filter(opt => form.device_type === 'IPTV' ? opt.value === 'IPTV' : opt.value === 'App')
+                        .map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
                     </select>
                   </div>
                 </div>
@@ -586,7 +728,7 @@ const NewTicketsPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 focus:ring-2 focus:ring-primary/20 transition-colors min-w-[100px] flex items-center justify-center"
+                  className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500/20 transition-colors min-w-[100px] flex items-center justify-center"
                   disabled={creating}
                 >
                   {creating ? (
@@ -692,7 +834,7 @@ const NewTicketsPage = () => {
                 onClick={() => setEditTicket(null)}
                 className="text-slate-400 hover:text-slate-500 transition-colors"
               >
-                <Icon icon="heroicons:x-mark" className="w-5 h-5" />
+                <Icon icon="heroicons:x-mark-20-solid" className="w-5 h-5" />
               </button>
             </div>
             {/* Modal Body */}
@@ -721,11 +863,12 @@ const NewTicketsPage = () => {
                       required
                     >
                       <option value="">Select channel</option>
-                      <option value="Phone">Phone</option>
-                      <option value="Email">Email</option>
-                      <option value="Chat">Chat</option>
-                      <option value="Social Media">Social Media</option>
-                      <option value="In Person">In Person</option>
+                      <option value="909 CC">909 CC</option>
+                      <option value="Whatsapp">Whatsapp</option>
+                      <option value="Messenger">Messenger</option>
+                      <option value="TikTok">TikTok</option>
+                      <option value="LiveChat">LiveChat</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                 </div>
@@ -739,11 +882,9 @@ const NewTicketsPage = () => {
                       onChange={handleEditChange}
                     >
                       <option value="">Select device</option>
-                      <option value="Mobile">Mobile</option>
-                      <option value="Laptop">Laptop</option>
-                      <option value="Tablet">Tablet</option>
-                      <option value="Desktop">Desktop</option>
-                      <option value="Other">Other</option>
+                      {deviceTypeOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -756,9 +897,11 @@ const NewTicketsPage = () => {
                       required
                     >
                       <option value="">Select category</option>
-                      {issueCategories.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
+                      {issueCategories
+                        .filter(opt => editTicket.device_type === 'IPTV' ? opt.value === 'IPTV' : opt.value === 'App')
+                        .map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
                     </select>
                   </div>
                 </div>

@@ -2,29 +2,25 @@ import React from "react";
 import Icon from "@/components/ui/Icon";
 
 const Swicth = ({
-  prevIcon,
-  nextIcon,
+  value,
+  onChange,
   label,
   id,
   disabled,
-  value,
-  onChange,
-  activeClass = "bg-indigo-500 dark:bg-gray-900",
-  activeThumb = "bg-indigo-500",
-  wrapperClass = " ",
-  labelClass = "text-gray-500 dark:text-gray-400 text-sm leading-6  capitalize",
-  outline,
+  wrapperClass,
+  labelClass,
+  activeClass = "bg-indigo-500",
+  activeThumb = "bg-white",
   badge,
+  prevIcon,
+  nextIcon,
+  outline,
 }) => {
   const classChange = () => {
-    if (value && !badge) {
-      return "ltr:translate-x-[20px] rtl:-translate-x-[20px]";
-    } else if (badge && value) {
-      return "ltr:translate-x-[28px] rtl:-translate-x-[28px]";
-    } else if (badge && !value) {
-      return "ltr:translate-x-[4px] rtl:-translate-x-[4px]";
+    if (value) {
+      return "translate-x-6";
     } else {
-      return "ltr:translate-x-[4px] rtl:-translate-x-[4px]";
+      return "translate-x-1";
     }
   };
 
@@ -59,7 +55,7 @@ const Swicth = ({
                   {prevIcon ? (
                     <Icon icon={prevIcon} />
                   ) : (
-                    <span className="text-[9px] ">on</span>
+                    <span className="text-xs">on</span>
                   )}
                 </span>
               )}
@@ -68,7 +64,7 @@ const Swicth = ({
                   {nextIcon ? (
                     <Icon icon={nextIcon} />
                   ) : (
-                    <span className="text-[9px]">Off</span>
+                    <span className="text-xs">Off</span>
                   )}
                 </span>
               )}
@@ -95,7 +91,7 @@ const Swicth = ({
                   {prevIcon ? (
                     <Icon icon={prevIcon} />
                   ) : (
-                    <span className="text-[9px] ">on</span>
+                    <span className="text-xs">on</span>
                   )}
                 </span>
               )}
@@ -104,7 +100,7 @@ const Swicth = ({
                   {nextIcon ? (
                     <Icon icon={nextIcon} />
                   ) : (
-                    <span className="text-[9px]">Off</span>
+                    <span className="text-xs">Off</span>
                   )}
                 </span>
               )}

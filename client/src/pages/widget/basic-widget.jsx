@@ -1,322 +1,242 @@
 import React from "react";
-import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Icon from "@/components/ui/Icon";
 
-// import images
-import wbg1 from "@/assets/images/all-img/widget-bg-1.png";
-import wbg2 from "@/assets/images/all-img/widget-bg-3-1.png";
-import wbg3 from "@/assets/images/all-img/widget-bg-3.png";
-import wbg4 from "@/assets/images/all-img/widget-bg-2.png";
-import wbg5 from "@/assets/images/all-img/widget-bg-4.png";
-import wbg6 from "@/assets/images/all-img/widget-bg-5.png";
-import wbg7 from "@/assets/images/all-img/widget-bg-6.png";
-import wbg8 from "@/assets/images/all-img/widget-bg-7.png";
-import wbg9 from "@/assets/images/all-img/widget-bg-8.png";
-import vectorImage from "@/assets/images/svg/widgetvector.svg";
-import vectorImage2 from "@/assets/images/svg/widgetvector2.svg";
-import svgLine from "@/assets/images/svg/line.svg";
-import svgRabit from "@/assets/images/svg/rabit.svg";
-import svgGift from "@/assets/images/svg/gift.svg";
-
-const rabitWidget = [
-  {
-    bg: "bg-gray-900 dark:bg-gray-800",
-  },
-  {
-    bg: "bg-indigo-700",
-  },
-  {
-    bg: "bg-green-600",
-  },
-  {
-    bg: "bg-cyan-600 ",
-  },
-];
-const griftWidget = [
-  {
-    bg: "bg-gray-900 dark:bg-gray-800",
-  },
-  {
-    bg: "bg-indigo-700",
-  },
-  {
-    bg: "bg-green-600",
-  },
-  {
-    bg: "bg-cyan-600 ",
-  },
-  {
-    bg: "bg-red-600 ",
-  },
-  {
-    bg: "bg-yellow-400 ",
-  },
-];
 const BasicWidget = () => {
   return (
-    <div className="space-y-5">
-      <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5">
-        <div
-          className="bg-no-repeat bg-cover bg-center p-4 rounded-[6px] relative"
-          style={{
-            backgroundImage: `url(${wbg3})`,
-          }}
-        >
-          <div className="max-w-[180px]">
-            <h4 className="text-xl font-medium text-white mb-2">
-              Upgrade your DashSpace
-            </h4>
-            <p className="text-sm text-white text-opacity-80">
-              Pro plan for better results
-            </p>
-          </div>
-          <div className="absolute top-1/2 -translate-y-1/2 ltr:right-6 rtl:left-6 mt-2 h-12 w-12 bg-white rounded-full text-xs font-medium flex flex-col items-center justify-center">
-            Now
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center p-4 rounded-[6px] relative"
-          style={{
-            backgroundImage: `url(${wbg1})`,
-          }}
-        >
-          <div className="max-w-[180px]">
-            <div className="text-xl font-medium text-gray-900 mb-2">
-              Upgrade your DashSpace
-            </div>
-            <p className="text-sm text-gray-800">Pro plan for better results</p>
-          </div>
-          <div className="absolute top-1/2 -translate-y-1/2 ltr:right-6 rtl:left-6 mt-2 h-12 w-12 bg-white rounded-full text-xs font-medium flex flex-col items-center justify-center">
-            Now
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center p-4 rounded-[6px] relative"
-          style={{
-            backgroundImage: `url(${wbg2})`,
-          }}
-        >
-          <div className="max-w-[180px]">
-            <div className="text-xl font-medium text-gray-900 mb-2">
-              Upgrade your DashSpace
-            </div>
-            <p className="text-sm text-gray-800">Pro plan for better results</p>
-          </div>
-          <div className="absolute top-1/2 -translate-y-1/2 ltr:right-6 rtl:left-6 mt-2 h-12 w-12 bg-white rounded-full text-xs font-medium flex flex-col items-center justify-center">
-            Now
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center p-5 rounded-[6px] relative"
-          style={{
-            backgroundImage: `url(${wbg4})`,
-          }}
-        >
-          <div className="max-w-[180px]">
-            <h4 className="text-xl font-medium text-white mb-2">
-              <span className="block font-normal">Good evening,</span>
-              <span className="block">Mr. Dianne Russell</span>
-            </h4>
-            <p className="text-sm text-white font-normal">
-              Welcome to DashSpace
-            </p>
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center p-5 rounded-[6px] relative flex items-center"
-          style={{
-            backgroundImage: `url(${wbg5})`,
-          }}
-        >
-          <div className="flex-1">
-            <div className="max-w-[180px]">
-              <div className="text-xl font-medium text-gray-900 mb-2">
-                <span className="block font-normal">Good evening,</span>
-                <span className="block">Mr. Dianne Russell</span>
-              </div>
-              <p className="text-sm text-gray-900 font-normal">
-                Welcome to DashSpace
-              </p>
-            </div>
-          </div>
-          <div className="flex-none">
-            <img src={vectorImage} alt="" className="ml-auto" />
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center p-5 rounded-[6px] relative flex items-center"
-          style={{
-            backgroundImage: `url(${wbg6})`,
-          }}
-        >
-          <div className="flex-1">
-            <div className="max-w-[180px]">
-              <div className="text-xl font-medium text-white dark:text-gray-800 mb-2">
-                <span className="block font-normal">Good evening,</span>
-                <span className="block">Mr. Dianne Russell</span>
-              </div>
-              <p className="text-sm text-wgite text-white dark:text-gray-800 font-normal">
-                Welcome to DashSpace
-              </p>
-            </div>
-          </div>
-          <div className="flex-none">
-            <img src={vectorImage2} alt="" className="ml-auto" />
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center px-5 py-8 rounded-[6px] relative flex items-center"
-          style={{
-            backgroundImage: `url(${wbg7})`,
-          }}
-        >
-          <div className="flex-1">
-            <div className="max-w-[180px]">
-              <h4 className="text-2xl font-medium text-white mb-2">
-                <span className="block text-sm">Current balance,</span>
-                <span className="block">$34,564</span>
-              </h4>
-            </div>
-          </div>
-          <div className="flex-none">
-            <Button
-              icon="heroicons-outline:eye"
-              text="View details"
-              className="btn-light bg-white btn-sm "
-            />
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center px-5 py-8 rounded-[6px] relative flex items-center"
-          style={{
-            backgroundImage: `url(${wbg8})`,
-          }}
-        >
-          <div className="flex-1">
-            <div className="max-w-[180px]">
-              <h4 className="text-2xl font-medium text-gray-900 mb-2">
-                <span className="block text-sm dark:text-gray-800">
-                  Current balance,
-                </span>
-                <span className="block dark:text-gray-800">$34,564</span>
-              </h4>
-            </div>
-          </div>
-          <div className="flex-none">
-            <Button
-              icon="heroicons-outline:eye"
-              text="View details"
-              className="btn-light bg-white btn-sm "
-            />
-          </div>
-        </div>
-        {/* ?? end Single ?? */}
-        <div
-          className="bg-no-repeat bg-cover bg-center px-5 py-8 rounded-[6px] relative flex items-center"
-          style={{
-            backgroundImage: `url(${wbg9})`,
-          }}
-        >
-          <div className="flex-1">
-            <div className="max-w-[180px]">
-              <h4 className="text-2xl font-medium text-gray-900 mb-2">
-                <span className="block text-sm dark:text-gray-800">
-                  Current balance,
-                </span>
-                <span className="block dark:text-gray-800">$34,564</span>
-              </h4>
-            </div>
-          </div>
-          <div className="flex-none">
-            <Button
-              icon="heroicons-outline:eye"
-              text="View details"
-              className="btn-light bg-white btn-sm "
-            />
-          </div>
-        </div>
-      </div>
-      <div className="grid md:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-5">
-        {rabitWidget.map((item, i) => (
+    <div>
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5">
+        <Card>
           <div
-            className={` mt-7 p-6 relative z-[1] rounded-2xl text-white ${item.bg}`}
-            key={i}
+            className="bg-no-repeat bg-cover bg-center p-4 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23F1F5F9'/%3e%3c/svg%3e")`,
+            }}
           >
-            <div className="max-w-[168px]">
-              <div className="widget-title">Unlimited Access</div>
-              <div className="text-xs font-normal">
-                Upgrade your system to business plan
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Sales
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  $3,500
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 12% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:currency-dollar" />
               </div>
             </div>
-            <div className="mt-6 mb-14">
-              <button className="btn bg-white hover:bg-opacity-80 text-gray-900 btn-sm">
-                Upgrade
-              </button>
-            </div>
-            <img
-              src={svgLine}
-              alt=""
-              className="absolute left-0 bottom-0 w-full z-[-1]"
-            />
-            <img
-              src={svgRabit}
-              alt=""
-              className="absolute ltr:right-5 rtl:left-5 -bottom-4 z-[-1]"
-            />
           </div>
-        ))}
-      </div>
-      <div className="grid lg:grid-cols-6 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5">
-        {griftWidget.map((item, i) => (
+        </Card>
+        <Card>
           <div
-            className={`${item.bg}  mb-10 mt-7 p-4 relative text-center rounded-2xl text-white`}
-            key={i}
+            className="bg-no-repeat bg-cover bg-center p-4 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23FEF3C7'/%3e%3c/svg%3e")`,
+            }}
           >
-            <img src={svgGift} alt="" className="mx-auto relative -mt-[40px]" />
-            <div className="max-w-[160px] mx-auto mt-6">
-              <div className="widget-title">Unlimited Access</div>
-              <div className="text-xs font-normal">
-                Upgrade your system to business plan
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Orders
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  2,300
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 8% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:shopping-bag" />
               </div>
             </div>
-            <div className="mt-6">
-              <button className="btn bg-white hover:bg-opacity-80 text-gray-900 btn-sm w-full block">
-                Upgrade
-              </button>
-            </div>
           </div>
-        ))}
-      </div>
-      <div className="grid lg:grid-cols-6 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5">
-        {griftWidget.map((item, i) => (
+        </Card>
+        <Card>
           <div
-            className={` ${item.bg} mb-10 mt-7 p-4 relative text-center rounded-2xl text-white`}
-            key={i}
+            className="bg-no-repeat bg-cover bg-center p-4 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23DBEAFE'/%3e%3c/svg%3e")`,
+            }}
           >
-            <img
-              src={svgRabit}
-              alt=""
-              className="mx-auto relative -mt-[73px]"
-            />
-            <div className="max-w-[160px] mx-auto mt-6">
-              <div className="widget-title">Unlimited Access</div>
-              <div className="text-xs font-normal">
-                Upgrade your system to business plan
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Customers
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  1,200
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 15% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:users" />
               </div>
             </div>
-            <div className="mt-6">
-              <button className="btn bg-white hover:bg-opacity-80 text-gray-900 btn-sm w-full block">
-                Upgrade
-              </button>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5 mt-5">
+        <Card>
+          <div
+            className="bg-no-repeat bg-cover bg-center p-5 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23D1FAE5'/%3e%3c/svg%3e")`,
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Revenue
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  $45,200
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 20% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:trending-up" />
+              </div>
             </div>
           </div>
-        ))}
+        </Card>
+        <Card>
+          <div
+            className="bg-no-repeat bg-cover bg-center p-5 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23FEE2E2'/%3e%3c/svg%3e")`,
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Products
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  850
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 5% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:cube" />
+              </div>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div
+            className="bg-no-repeat bg-cover bg-center p-5 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23F3E8FF'/%3e%3c/svg%3e")`,
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Categories
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  120
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 3% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:tag" />
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5 mt-5">
+        <Card>
+          <div
+            className="bg-no-repeat bg-cover bg-center px-5 py-8 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23FEF3C7'/%3e%3c/svg%3e")`,
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Orders
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  2,300
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 8% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:shopping-bag" />
+              </div>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div
+            className="bg-no-repeat bg-cover bg-center px-5 py-8 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23DBEAFE'/%3e%3c/svg%3e")`,
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Customers
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  1,200
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 15% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:users" />
+              </div>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div
+            className="bg-no-repeat bg-cover bg-center px-5 py-8 rounded-lg relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M96 0H4C1.79086 0 0 1.79086 0 4V96C0 98.2091 1.79086 100 4 100H96C98.2091 100 100 98.2091 100 96V4C100 1.79086 98.2091 0 96 0Z' fill='%23D1FAE5'/%3e%3c/svg%3e")`,
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                  Total Revenue
+                </h4>
+                <div className="text-slate-900 dark:text-white text-2xl font-medium mt-4">
+                  $45,200
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 text-xs font-normal mt-2">
+                  ⬆ 20% From last month
+                </div>
+              </div>
+              <div className="h-12 w-12 bg-white/70 rounded-lg flex items-center justify-center">
+                <Icon icon="heroicons-outline:trending-up" />
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

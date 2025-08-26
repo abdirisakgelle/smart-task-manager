@@ -13,25 +13,26 @@ const ContentManagement = () => {
     content_status: 'in_progress',
     director_id: '',
     filming_date: '',
+    filming_time: '',
     cast_and_presenters: [],
     notes: ''
   });
 
   // API hooks
   const { data: content = [], isLoading, error, refetch } = useGetContentQuery();
-  const { data: employees = [], error: employeesError } = useGetAllEmployeesQuery();
+  const { data: employees = [], isLoading: employeesLoading, error: employeesError } = useGetAllEmployeesQuery();
   const { data: ideas = [], error: ideasError } = useGetIdeasQuery();
   const [createContent, { isLoading: isCreating }] = useCreateContentMutation();
   const [deleteContent, { isLoading: isDeleting }] = useDeleteContentMutation();
 
   // Filter employees by department for dynamic dropdowns
-  const contentEmployees = employees.filter(emp => emp.department === 'Content');
-  const editorEmployees = employees.filter(emp => emp.department === 'Editor');
+  const contentEmployees = employees.filter(emp => emp.department === 'Marcom' && emp.section === 'Digital Media' && emp.unit === 'Content Creator');
+  const editorEmployees = employees.filter(emp => emp.department === 'Marcom' && emp.section === 'Digital Media' && emp.unit === 'Editor');
   const directorEmployees = employees.filter(emp => 
-    ['Content', 'Editor', 'Social Media Specialist', 'Digital Media Manager'].includes(emp.department)
+    emp.department === 'Marcom' && emp.section === 'Digital Media' && ['Content Creator', 'Editor', 'Social Media Specialist'].includes(emp.unit)
   );
   const castAndPresentersEmployees = employees.filter(emp => 
-    ['Content', 'Editor', 'Social Media Specialist', 'Digital Media Manager'].includes(emp.department)
+    emp.department === 'Marcom' && emp.section === 'Digital Media' && ['Content Creator', 'Editor', 'Social Media Specialist'].includes(emp.unit)
   );
 
   const filteredContent = content.filter(item => {
@@ -45,13 +46,29 @@ const ContentManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createContent(formData).unwrap();
+      // Combine date and time into a single datetime string
+      let filming_date = null;
+      if (formData.filming_date && formData.filming_time) {
+        // Store as simple datetime string to avoid timezone issues
+        filming_date = `${formData.filming_date}T${formData.filming_time}`;
+      } else if (formData.filming_date) {
+        // If only date is provided, set time to end of day
+        filming_date = `${formData.filming_date}T23:59`;
+      }
+
+      const submissionData = {
+        ...formData,
+        filming_date
+      };
+
+      await createContent(submissionData).unwrap();
       setFormData({
         idea_id: '',
         script_status: 'pending',
         content_status: 'in_progress',
         director_id: '',
         filming_date: '',
+        filming_time: '',
         cast_and_presenters: [],
         notes: ''
       });
@@ -110,10 +127,30 @@ const ContentManagement = () => {
       day: 'numeric'
     });
   };
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'Not set';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      
+      // Format as "Aug 24, 2:30 PM" for better readability
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      }) + ', ' + date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
+  };
 
   const getEmployeeName = (employeeId) => {
     const employee = employees.find(emp => emp.employee_id == employeeId);
-    return employee ? `${employee.name} (${employee.department})` : 'Unknown';
+    return employee ? employee.name : 'Unknown';
   };
 
   const getSelectedCastNames = () => {
@@ -152,14 +189,25 @@ const ContentManagement = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Content Management</h1>
           <p className="text-gray-600">Manage and track content production workflow</p>
+          <p className="text-sm text-gray-500 mt-1">Total Content: {content.length} | Showing: {filteredContent.length}</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-        >
-          <PlusIcon className="w-5 h-5 mr-2" />
-          Create New Content
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+          >
+            <PlusIcon className={`w-5 h-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <PlusIcon className="w-5 h-5 mr-2" />
+            Create New Content
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -221,8 +269,20 @@ const ContentManagement = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredContent.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                    No content found
+                  <td colSpan="7" className="px-6 py-8 text-center">
+                    <div className="text-gray-500">
+                      {content.length === 0 ? (
+                        <div>
+                          <div className="text-lg font-semibold mb-2">No content available</div>
+                          <div className="text-sm">Create new content to get started.</div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-lg font-semibold mb-2">No content found</div>
+                          <div className="text-sm">Try adjusting your search or filters.</div>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -236,7 +296,7 @@ const ContentManagement = () => {
                       {getEmployeeName(item.director_id)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(item.filming_date)}
+                      {item.filming_date ? formatDateTime(item.filming_date) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.cast_and_presenters || '-'}
@@ -279,14 +339,14 @@ const ContentManagement = () => {
       {/* Modal for New Content */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4">
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl mx-4">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Create New Content</h2>
-              <p className="text-sm text-gray-600 mt-1">Enter Content Information</p>
+              <h2 className="text-2xl font-bold text-gray-900">Create New Content</h2>
+              <p className="text-gray-600 mt-2">Enter content information to submit for production</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* Two Column Layout */}
+              {/* Original Idea & Director - Two Columns */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -296,7 +356,7 @@ const ContentManagement = () => {
                     required
                     value={formData.idea_id}
                     onChange={(e) => handleIdeaChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   >
                     <option value="">Select Original Idea</option>
                     {ideas.map((idea) => (
@@ -309,19 +369,19 @@ const ContentManagement = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Director * (Content, Editor, Social Media, Digital Media)
+                    Director *
                   </label>
                   <select
                     required
                     value={formData.director_id}
                     onChange={(e) => setFormData({...formData, director_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     disabled={employeesLoading}
                   >
                     <option value="">Select Director</option>
                     {directorEmployees.map((emp) => (
                       <option key={emp.employee_id} value={emp.employee_id}>
-                        {emp.name} ({emp.department})
+                        {emp.name}
                       </option>
                     ))}
                   </select>
@@ -329,7 +389,10 @@ const ContentManagement = () => {
                     <p className="text-xs text-red-500 mt-1">No employees available for Director role</p>
                   )}
                 </div>
-                
+              </div>
+              
+              {/* Filming Date & Time - Two Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Filming Date
@@ -338,10 +401,25 @@ const ContentManagement = () => {
                     type="date"
                     value={formData.filming_date}
                     onChange={(e) => setFormData({...formData, filming_date: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   />
                 </div>
                 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Filming Time
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.filming_time}
+                    onChange={(e) => setFormData({...formData, filming_time: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                  />
+                </div>
+              </div>
+              
+              {/* Script Status & Content Status - Two Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Script Status
@@ -349,7 +427,7 @@ const ContentManagement = () => {
                   <select 
                     value={formData.script_status}
                     onChange={(e) => setFormData({...formData, script_status: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   >
                     <option value="pending">Pending</option>
                     <option value="in_progress">In Progress</option>
@@ -365,7 +443,7 @@ const ContentManagement = () => {
                   <select 
                     value={formData.content_status}
                     onChange={(e) => setFormData({...formData, content_status: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   >
                     <option value="planning">Planning</option>
                     <option value="in_progress">In Progress</option>
@@ -375,10 +453,13 @@ const ContentManagement = () => {
                     <option value="published">Published</option>
                   </select>
                 </div>
-                
+              </div>
+              
+              {/* Cast & Presenters & Notes - Two Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cast & Presenters (Multi-select)
+                    Cast & Presenters
                   </label>
                   <select
                     multiple
@@ -387,12 +468,12 @@ const ContentManagement = () => {
                       const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
                       setFormData({...formData, cast_and_presenters: selectedOptions});
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent min-h-[80px]"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors min-h-[80px] resize-none"
                   >
                     <option value="" disabled>Select Cast & Presenters</option>
                     {castAndPresentersEmployees.map((emp) => (
                       <option key={emp.employee_id} value={emp.employee_id}>
-                        {emp.name} ({emp.department})
+                        {emp.name}
                       </option>
                     ))}
                   </select>
@@ -415,35 +496,34 @@ const ContentManagement = () => {
                     </div>
                   )}
                 </div>
-              </div>
-              
-              {/* Full Width Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notes
-                </label>
-                <textarea
-                  rows="4"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Add production notes..."
-                />
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    rows="4"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none"
+                    placeholder="Add production notes..."
+                  />
+                </div>
               </div>
               
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end space-x-4 pt-5 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 font-medium shadow-sm"
                 >
                   {isCreating ? 'Creating...' : 'Create Content'}
                 </button>

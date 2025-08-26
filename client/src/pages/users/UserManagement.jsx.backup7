@@ -1,0 +1,495 @@
+import React, { useState, useEffect } from "react";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Icon from "@/components/ui/Icon";
+import { toast } from "react-toastify";
+import { useGetCurrentUserQuery } from "@/store/api/auth/authApiSlice";
+import { getApiUrl } from "@/utils/apiUtils";
+import UserCreationModal from "./UserCreationModal";
+import UserRoleModal from "./UserRoleModal";
+import UserStatusModal from "./UserStatusModal";
+import PasswordResetModal from "./PasswordResetModal";
+
+const UserManagement = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const { data: currentUser } = useGetCurrentUserQuery();
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(getApiUrl('/users'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError(err.message);
+      toast.error('Failed to load users: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(getApiUrl(`/users/${userId}`), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      toast.success('User deleted successfully');
+      fetchUsers();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      toast.error('Failed to delete user: ' + err.message);
+    }
+  };
+
+  const handleRoleUpdate = async (userId, newRole) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(getApiUrl(`/users/${userId}/role`), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user role');
+      }
+
+      toast.success('User role updated successfully');
+      fetchUsers();
+      setShowRoleModal(false);
+      setSelectedUser(null);
+    } catch (err) {
+      console.error('Error updating user role:', err);
+      toast.error('Failed to update user role: ' + err.message);
+    }
+  };
+
+  const handleStatusUpdate = async (userId, newStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(getApiUrl(`/users/${userId}/status`), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user status');
+      }
+
+      toast.success(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
+      fetchUsers();
+      setShowStatusModal(false);
+      setSelectedUser(null);
+    } catch (err) {
+      console.error('Error updating user status:', err);
+      toast.error('Failed to update user status: ' + err.message);
+    }
+  };
+
+  const handlePasswordReset = async (userId, newPassword) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(getApiUrl(`/users/${userId}/password`), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ new_password: newPassword })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reset password');
+      }
+
+      toast.success('Password reset successfully');
+      setShowPasswordModal(false);
+      setSelectedUser(null);
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      toast.error('Failed to reset password: ' + err.message);
+    }
+  };
+
+  const getRoleBadgeColor = (role) => {
+    const colors = {
+      admin: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+      manager: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      agent: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      supervisor: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      media: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+      follow_up: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
+    };
+    return colors[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+  };
+
+  const getStatusBadgeColor = (status) => {
+    return status === 'active' 
+      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+      : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+  };
+
+  const getRoleDescription = (role) => {
+    const descriptions = {
+      admin: 'Full system access and user management',
+      manager: 'Team management and oversight',
+      agent: 'Basic system access and task handling',
+      supervisor: 'Review and approval capabilities',
+      media: 'Content creation and media management',
+      follow_up: 'Follow-up tasks and communications'
+    };
+    return descriptions[role] || 'Standard user access';
+  };
+
+  // Filter users based on search and filters
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = !searchTerm || 
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.employee_name && user.employee_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesRole = !roleFilter || user.role === roleFilter;
+    const matchesStatus = !statusFilter || user.status === statusFilter;
+    const isNotCurrentUser = user.user_id !== currentUser?.user_id;
+    
+    return matchesSearch && matchesRole && matchesStatus && isNotCurrentUser;
+  });
+
+  const handleUserCreated = () => {
+    setShowCreateModal(false);
+    fetchUsers();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <Icon icon="ph:exclamation-triangle-bold" className="w-16 h-16 text-red-500 mx-auto mb-6" />
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Error Loading Users</h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+        <Button 
+          onClick={fetchUsers} 
+          text="Try Again"
+          icon="ph:arrow-path"
+          className="bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-700 dark:hover:bg-slate-600"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Users Management</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Manage system users, roles, and access permissions
+          </p>
+        </div>
+        <Button 
+          onClick={() => setShowCreateModal(true)}
+          text="Add New User"
+          icon="ph:plus"
+          className="btn btn-dark"
+        />
+      </div>
+
+      {/* Search and Filters - MERGED VERSION */}
+      <Card className="p-4">
+        <div className="flex flex-col sm:flex-row gap-3 items-end">
+          {/* Search Input - Takes more space */}
+          <div className="flex-1 min-w-0">
+            <div className="relative">
+              <Icon icon="ph:magnifying-glass" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search by username or employee name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
+          </div>
+          
+          {/* Role Filter */}
+          <div className="w-full sm:w-auto min-w-[140px]">
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="agent">Agent</option>
+              <option value="supervisor">Supervisor</option>
+              <option value="media">Media</option>
+              <option value="follow_up">Follow Up</option>
+            </select>
+          </div>
+          
+          {/* Status Filter */}
+          <div className="w-full sm:w-auto min-w-[120px]">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </Card>
+      {/* Users Table */}
+      <Card className="overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              System Users ({filteredUsers.length})
+            </h3>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {filteredUsers.length !== users.length && (
+                <span>Showing {filteredUsers.length} of {users.length} users</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Employee Info
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Created
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredUsers.map((user) => (
+                <tr key={user.user_id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-lg ring-2 ring-white dark:ring-gray-800">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {user.username}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          #NS{String(user.user_id).padStart(3, "0")}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {user.employee_name ? (
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {user.employee_name}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {user.job_title && <span>{user.job_title}</span>}
+                          {user.shift && <span> • {user.shift}</span>}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        No employee linked
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+                      {user.role}
+                    </span>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {getRoleDescription(user.role)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(user.status)}`}>
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end space-x-2">
+                      <Button
+                        icon="ph:user"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowRoleModal(true);
+                        }}
+                        className="btn btn-xs btn-outline-primary h-8 w-8 p-0"
+                        title="Update Role"
+                      />
+                      <Button
+                        icon="ph:power"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowStatusModal(true);
+                        }}
+                        className="btn btn-xs btn-outline-success h-8 w-8 p-0"
+                        title="Update Status"
+                      />
+                      <Button
+                        icon="ph:key"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowPasswordModal(true);
+                        }}
+                        className="btn btn-xs btn-outline-warning h-8 w-8 p-0"
+                        title="Reset Password"
+                      />
+                      <Button
+                        icon="ph:trash"
+                        onClick={() => handleDeleteUser(user.user_id)}
+                        className="btn btn-xs btn-outline-danger h-8 w-8 p-0"
+                        title="Delete User"
+                      />                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-12">
+            <Icon icon="ph:users" className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              {searchTerm || roleFilter || statusFilter ? 'No users match your filters' : 'No Users Found'}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              {searchTerm || roleFilter || statusFilter 
+                ? 'Try adjusting your search criteria or filters.'
+                : 'There are no users in the system yet.'
+              }
+            </p>
+          </div>
+        )}
+      </Card>
+
+      {/* Modals */}
+      {showCreateModal && (
+        <UserCreationModal
+          onUserCreated={handleUserCreated}
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
+
+      {showRoleModal && selectedUser && (
+        <UserRoleModal
+          user={selectedUser}
+          onUpdate={handleRoleUpdate}
+          onClose={() => {
+            setShowRoleModal(false);
+            setSelectedUser(null);
+          }}
+        />
+      )}
+
+      {showStatusModal && selectedUser && (
+        <UserStatusModal
+          user={selectedUser}
+          onUpdate={handleStatusUpdate}
+          onClose={() => {
+            setShowStatusModal(false);
+            setSelectedUser(null);
+          }}
+        />
+      )}
+
+      {showPasswordModal && selectedUser && (
+        <PasswordResetModal
+          user={selectedUser}
+          onUpdate={handlePasswordReset}
+          onClose={() => {
+            setShowPasswordModal(false);
+            setSelectedUser(null);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default UserManagement; 

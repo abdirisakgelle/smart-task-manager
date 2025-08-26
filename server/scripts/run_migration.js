@@ -6,8 +6,8 @@ const path = require('path');
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'smart_task_manager',
+  password: process.env.DB_PASSWORD || 'nasiye@2025',
+  database: process.env.DB_NAME || 'nasiye_tasks',
   port: process.env.DB_PORT || 3306
 };
 

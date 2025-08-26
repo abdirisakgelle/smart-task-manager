@@ -36,6 +36,8 @@ exports.createIdea = async (req, res) => {
       [submission_date, title, contributor_id, script_writer_id, status || 'bank', script_deadline || null, priority || 'medium', notes || null]
     );
 
+    const ideaId = result.insertId;
+
     // Fetch the created idea with employee names
     const [newIdea] = await pool.query(`
       SELECT 
@@ -46,7 +48,36 @@ exports.createIdea = async (req, res) => {
       LEFT JOIN employees c ON i.contributor_id = c.employee_id
       LEFT JOIN employees sw ON i.script_writer_id = sw.employee_id
       WHERE i.idea_id = ?
-    `, [result.insertId]);
+    `, [ideaId]);
+
+    // Automatically create a task from the idea
+    try {
+      const { createTaskFromIdea } = require('../utils/taskFromIdea');
+      const createdByUserId = req.user?.user_id || 1; // Default to user_id 1 if not available
+      
+      const taskData = {
+        title,
+        script_writer_id,
+        priority,
+        script_deadline,
+        notes
+      };
+      
+      const createdTask = await createTaskFromIdea(taskData, ideaId, createdByUserId);
+      console.log('✅ Task automatically created from idea:', ideaId);
+      
+      // Add task information to the response
+      newIdea[0].created_task = {
+        task_id: createdTask.task_id,
+        task_title: createdTask.title,
+        task_status: createdTask.status
+      };
+      
+    } catch (taskError) {
+      console.error('❌ Error creating task from idea:', taskError);
+      // Don't fail the idea creation if task creation fails
+      newIdea[0].task_creation_error = 'Task creation failed but idea was saved';
+    }
 
     // Create notifications for assigned employees
     try {
@@ -66,10 +97,10 @@ exports.createIdea = async (req, res) => {
             title: 'New Script Assignment',
             message: `You have been assigned to write a script for the idea: "${title}". Please review and start working on it.`,
             type: 'script_assignment',
-            related_id: result.insertId,
+            related_id: ideaId,
             related_type: 'idea'
           });
-          console.log('✅ Script writer notification created for idea:', result.insertId);
+          console.log('✅ Script writer notification created for idea:', ideaId);
         }
       }
       
@@ -87,10 +118,10 @@ exports.createIdea = async (req, res) => {
             title: 'New Idea Assignment',
             message: `You have been assigned as a contributor for the idea: "${title}". Please review and provide input.`,
             type: 'idea_assignment',
-            related_id: result.insertId,
+            related_id: ideaId,
             related_type: 'idea'
           });
-          console.log('✅ Contributor notification created for idea:', result.insertId);
+          console.log('✅ Contributor notification created for idea:', ideaId);
         }
       }
     } catch (error) {

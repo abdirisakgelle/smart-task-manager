@@ -14,7 +14,8 @@ const NewCreativeIdeas = () => {
     title: '',
     contributor_id: '',
     script_writer_id: '',
-    script_deadline: '',
+    script_deadline_date: '',
+    script_deadline_time: '',
     priority: 'medium',
     status: 'bank',
     notes: ''
@@ -27,16 +28,16 @@ const NewCreativeIdeas = () => {
   const [deleteIdea, { isLoading: isDeleting }] = useDeleteIdeaMutation();
 
   // Filter employees by department for dynamic dropdowns
-  const contentEmployees = employees.filter(emp => emp.department === 'Content');
-  const editorEmployees = employees.filter(emp => emp.department === 'Editor');
+  const contentEmployees = employees.filter(emp => emp.department === 'Marcom' && emp.section === 'Digital Media' && emp.unit === 'Content Creator');
+  const editorEmployees = employees.filter(emp => emp.department === 'Marcom' && emp.section === 'Digital Media' && emp.unit === 'Editor');
   const contributorEmployees = employees.filter(emp => 
-    ['Content', 'Editor', 'Social Media Specialist', 'Digital Media Manager'].includes(emp.department)
+    emp.department === 'Marcom' && emp.section === 'Digital Media' && ['Content Creator', 'Editor', 'Social Media Specialist'].includes(emp.unit)
   );
   const scriptWriterEmployees = employees.filter(emp => 
-    ['Content', 'Editor', 'Social Media Specialist', 'Digital Media Manager'].includes(emp.department)
+    emp.department === 'Marcom' && emp.section === 'Digital Media' && ['Content Creator', 'Editor', 'Social Media Specialist'].includes(emp.unit)
   );
   const castAndPresentersEmployees = employees.filter(emp => 
-    ['Content', 'Editor', 'Social Media Specialist', 'Digital Media Manager'].includes(emp.department)
+    emp.department === 'Marcom' && emp.section === 'Digital Media' && ['Content Creator', 'Editor', 'Social Media Specialist'].includes(emp.unit)
   );
 
   const filteredIdeas = ideas.filter(idea => {
@@ -55,8 +56,8 @@ const NewCreativeIdeas = () => {
 
   const getEmployeeWithRole = (employeeId) => {
     const employee = employees.find(emp => emp.employee_id === employeeId);
-    if (!employee) return { name: 'Unknown', department: 'Unknown' };
-    return { name: employee.name, department: employee.department };
+    if (!employee) return { name: 'Unknown', unit: 'Unknown' };
+    return { name: employee.name, unit: employee.unit };
   };
 
   const handleRefresh = () => {
@@ -66,12 +67,29 @@ const NewCreativeIdeas = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createIdea(formData).unwrap();
+      // Combine date and time into a single datetime string
+      let script_deadline = null;
+      if (formData.script_deadline_date && formData.script_deadline_time) {
+        // Create a proper datetime string for MySQL DATETIME field
+        const dateTimeStr = `${formData.script_deadline_date}T${formData.script_deadline_time}`;
+        script_deadline = dateTimeStr;
+      } else if (formData.script_deadline_date) {
+        // If only date is provided, set time to end of day
+        script_deadline = `${formData.script_deadline_date}T23:59:59`;
+      }
+
+      const submissionData = {
+        ...formData,
+        script_deadline
+      };
+
+      await createIdea(submissionData).unwrap();
       setFormData({
         title: '',
         contributor_id: '',
         script_writer_id: '',
-        script_deadline: '',
+        script_deadline_date: '',
+        script_deadline_time: '',
         priority: 'medium',
         status: 'bank',
         notes: ''
@@ -119,6 +137,32 @@ const NewCreativeIdeas = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'Not set';
+    
+    // Parse the date string (now properly stored as DATETIME in database)
+    const date = new Date(dateString);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    
+    // Format date and time separately for better control
+    const dateStr = date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    return `${dateStr}, ${timeStr}`;
   };
 
   // Error state
@@ -273,13 +317,13 @@ const NewCreativeIdeas = () => {
                         <div className="text-sm text-gray-500">{idea.notes}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {contributor.name} ({contributor.department})
+                        {contributor.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {scriptWriter.name} ({scriptWriter.department})
+                        {scriptWriter.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {idea.script_deadline ? formatDate(idea.script_deadline) : '-'}
+                        {idea.script_deadline ? formatDateTime(idea.script_deadline) : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={getPriorityBadge(idea.priority)}>
@@ -376,28 +420,28 @@ const NewCreativeIdeas = () => {
                     📅 Deadline
                   </label>
                   <div className="text-sm text-gray-900">
-                    {selectedIdea.script_deadline ? formatDate(selectedIdea.script_deadline) : 'Not set'}
+                    {selectedIdea.script_deadline ? formatDateTime(selectedIdea.script_deadline) : 'Not set'}
                   </div>
                 </div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  👤 Contributor
-                </label>
-                <div className="text-sm text-gray-900">
-                  {getEmployeeWithRole(selectedIdea.contributor_id).name} – {getEmployeeWithRole(selectedIdea.contributor_id).department}
+                              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    👤 Contributor
+                  </label>
+                  <div className="text-sm text-gray-900">
+                    {getEmployeeWithRole(selectedIdea.contributor_id).name}
+                  </div>
                 </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ✍️ Script Writer
-                </label>
-                <div className="text-sm text-gray-900">
-                  {getEmployeeWithRole(selectedIdea.script_writer_id).name} – {getEmployeeWithRole(selectedIdea.script_writer_id).department}
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ✍️ Script Writer
+                  </label>
+                  <div className="text-sm text-gray-900">
+                    {getEmployeeWithRole(selectedIdea.script_writer_id).name}
+                  </div>
                 </div>
-              </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -424,44 +468,45 @@ const NewCreativeIdeas = () => {
       {/* Modal for New Idea */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Submit New Idea</h2>
-              <p className="text-sm text-gray-600 mt-1">Enter Idea Information</p>
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl mx-4">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">Submit New Idea</h2>
+              <p className="text-gray-600 mt-2">Enter idea information to submit for review</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* Two Column Layout */}
+              {/* Title - Full Width */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                  placeholder="Enter idea title"
+                />
+              </div>
+              
+              {/* Contributor & Script Writer - Two Columns */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Enter idea title"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contributor * (Content, Editor, Social Media, Digital Media)
+                    Contributor *
                   </label>
                   <select
                     required
                     value={formData.contributor_id}
                     onChange={(e) => setFormData({...formData, contributor_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     disabled={employeesLoading}
                   >
                     <option value="">Select Contributor</option>
                     {contributorEmployees.map((emp) => (
                       <option key={emp.employee_id} value={emp.employee_id}>
-                        {emp.name} ({emp.department})
+                        {emp.name}
                       </option>
                     ))}
                   </select>
@@ -472,47 +517,65 @@ const NewCreativeIdeas = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Script Writer * (Content, Editor, Social Media, Digital Media)
+                    Script Writer *
                   </label>
                   <select
                     required
                     value={formData.script_writer_id}
                     onChange={(e) => setFormData({...formData, script_writer_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     disabled={employeesLoading}
                   >
                     <option value="">Select Script Writer</option>
                     {scriptWriterEmployees.map((emp) => (
                       <option key={emp.employee_id} value={emp.employee_id}>
-                        {emp.name} ({emp.department})
+                        {emp.name}
                       </option>
                     ))}
                   </select>
                   {scriptWriterEmployees.length === 0 && (
                     <p className="text-xs text-red-500 mt-1">No employees available for Script Writer role</p>
-                  )}
+                    )}
+                  </div>
                 </div>
                 
+              {/* Script Deadline Date & Time - Two Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Deadline
+                    Script Deadline Date
                   </label>
                   <input
                     type="date"
-                    value={formData.script_deadline}
-                    onChange={(e) => setFormData({...formData, script_deadline: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    value={formData.script_deadline_date}
+                    onChange={(e) => setFormData({...formData, script_deadline_date: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Priority
+                    Script Deadline Time
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.script_deadline_time}
+                    onChange={(e) => setFormData({...formData, script_deadline_time: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                  />
+                </div>
+              </div>
+              
+              {/* Priority Level & Initial Status - Two Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Priority Level
                   </label>
                   <select 
                     value={formData.priority}
                     onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   >
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -522,12 +585,12 @@ const NewCreativeIdeas = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
+                    Initial Status
                   </label>
                   <select 
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   >
                     <option value="bank">Bank</option>
                     <option value="production">Production</option>
@@ -535,33 +598,33 @@ const NewCreativeIdeas = () => {
                 </div>
               </div>
               
-              {/* Full Width Description */}
+              {/* Idea Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notes
+                  Description
                 </label>
                 <textarea
                   rows="4"
                   value={formData.notes}
                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Describe your idea..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none"
+                  placeholder="Describe your creative idea in detail..."
                 />
               </div>
               
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end space-x-4 pt-5 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 font-medium shadow-sm"
                 >
                   {isCreating ? 'Submitting...' : 'Submit Idea'}
                 </button>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import InputGroup from "@/components/ui/InputGroup";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { useLoginMutation } from "@/store/api/auth/authApiSlice";
 import { setUser } from "@/store/api/auth/authSlice";
+import { initializePermissions } from "@/utils/permissionUtils";
 
 const schema = yup
   .object({
@@ -21,7 +22,6 @@ const schema = yup
   .required();
 
 const LoginForm = () => {
-  console.log("LoginForm rendered"); // Debug: confirm component renders
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
   const {
@@ -36,11 +36,8 @@ const LoginForm = () => {
   const navigate = useNavigate();
   
   const onSubmit = async (data) => {
-    console.log("onSubmit called", data); // Debug: confirm form submission
     try {
-      console.log("Calling login mutation");
       const response = await login({ username: data.username, password: data.password });
-      console.log("Login mutation response", response); // Debug: confirm mutation result
       
       if (response.error) {
         const errorMessage = response.error.data?.error || 
@@ -56,21 +53,59 @@ const LoginForm = () => {
       // Store token and user data
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      
       dispatch(setUser(response.data.user));
+      
+      // Initialize user permissions after successful login
+      try {
+        await initializePermissions(response.data.user.user_id);
+        console.log('Permissions initialized successfully');
+      } catch (permError) {
+        console.error('Error initializing permissions:', permError);
+        // Don't block login if permission initialization fails
+        toast.warning('Login successful, but permission loading failed. Some features may be limited.');
+      }
       
       // Show success message
       toast.success(`Welcome back, ${response.data.user.username}!`);
       
-      // Navigate to dashboard
-      navigate("/dashboard");
+      // Navigate to correct dashboard based on system_role
+      const role = response.data.user.system_role || response.data.user.role;
+      if (role === 'admin') {
+        navigate('/dashboard/admin');
+      } else if (role === 'ceo') {
+        navigate('/dashboard/admin');
+      } else if (role === 'media') {
+        navigate('/dashboard/content');
+      } else {
+        navigate('/dashboard'); // Fallback for any other roles
+      }
       
     } catch (error) {
-      console.error("Login error:", error);
       toast.error(error.message || 'Login failed. Please try again.');
     }
   };
   
   const [checked, setChecked] = useState(false);
+  const [demo, setDemo] = useState({ admin: [], media: [], agent: [] });
+
+  useEffect(() => {
+    const loadDemo = async () => {
+      try {
+        const res = await fetch('/api/users/demo-credentials');
+        if (!res.ok) return;
+        const data = await res.json();
+        setDemo({
+          admin: data.roles?.admin || [],
+          media: data.roles?.media || [],
+          agent: data.roles?.agent || []
+        });
+      } catch (e) {
+        // ignore; keep static fallback
+      }
+    };
+    loadDemo();
+  }, []);
   
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
@@ -115,17 +150,34 @@ const LoginForm = () => {
         isLoading={isLoading}
       />
       
-      {/* Actual Database Users Info */}
+      {/* Test Dashboard Credentials */}
       <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">
-          Real System Users:
+          Test Different Dashboards:
         </p>
         <div className="text-xs text-blue-500 dark:text-blue-300 space-y-1">
-          <p><strong>Admin:</strong> admin / admin123</p>
-          <p><strong>Admin:</strong> gelle / 123</p>
-          <p><strong>Digital Media:</strong> harun / 123</p>
-          <p><strong>Supervisor:</strong> mudalib / 123</p>
-          <p><strong>Agents:</strong> abdifitah, abdihafid, horiyo, sharmaake, osmaan / 123</p>
+          {demo.admin.map((u, i) => (
+            <p key={`admin-${i}`}><strong>Admin Dashboard:</strong> {u.username} {u.demoPassword ? `/ ${u.demoPassword}` : ''}</p>
+          ))}
+          {demo.agent.map((u, i) => (
+            <p key={`agent-${i}`}><strong>Support Dashboard:</strong> {u.username} {u.demoPassword ? `/ ${u.demoPassword}` : ''}</p>
+          ))}
+          {demo.media.map((u, i) => (
+            <p key={`media-${i}`}><strong>Content Dashboard:</strong> {u.username} {u.demoPassword ? `/ ${u.demoPassword}` : ''}</p>
+          ))}
+        </div>
+      </div>
+      
+      {/* Additional Test Users */}
+      <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        <p className="text-sm text-green-600 dark:text-green-400 font-medium mb-2">
+          Additional Test Users:
+        </p>
+        <div className="text-xs text-green-500 dark:text-green-300 space-y-1">
+          <p><strong>Regular User:</strong> user1 / user123</p>
+          <p><strong>Regular User:</strong> user2 / user123</p>
+          <p><strong>Test Agent:</strong> testagent / test123</p>
+          <p><strong>Test Media:</strong> testmedia / test123</p>
         </div>
       </div>
     </form>

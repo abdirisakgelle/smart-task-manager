@@ -12,6 +12,8 @@ const ProductionWorkflow = () => {
     editor_id: '',
     production_status: 'pending',
     completion_date: '',
+        completion_time: '',
+    completion_time: '',
     sent_to_social_team: false,
     notes: ''
   });
@@ -34,12 +36,27 @@ const ProductionWorkflow = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createProduction(formData).unwrap();
+      // Combine date and time into a single datetime string
+      let completion_date = null;
+      if (formData.completion_date && formData.completion_time) {
+        completion_date = `${formData.completion_date}T${formData.completion_time}`;
+      } else if (formData.completion_date) {
+        // If only date is provided, set time to end of day
+        completion_date = `${formData.completion_date}T23:59`;
+      }
+
+      const submissionData = {
+        ...formData,
+        completion_date
+      };
+
+      await createProduction(submissionData).unwrap();
       setFormData({
         content_id: '',
         editor_id: '',
         production_status: 'pending',
         completion_date: '',
+        completion_time: '',
         sent_to_social_team: false,
         notes: ''
       });
@@ -80,6 +97,11 @@ const ProductionWorkflow = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleString();
   };
 
   if (isLoading) {
@@ -202,7 +224,7 @@ const ProductionWorkflow = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(item.completion_date)}
+                      {formatDateTime(item.completion_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
@@ -314,6 +336,18 @@ const ProductionWorkflow = () => {
                     type="date"
                     value={formData.completion_date}
                     onChange={(e) => setFormData({...formData, completion_date: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Completion Time
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.completion_time}
+                    onChange={(e) => setFormData({...formData, completion_time: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>

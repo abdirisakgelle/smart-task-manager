@@ -37,7 +37,7 @@ const UserRegistration = ({ onUserCreated }) => {
       setIsLoading(true);
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${getApiUrl()}/users`, {
+      const response = await fetch(getApiUrl('/users'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

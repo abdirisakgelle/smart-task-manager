@@ -53,7 +53,7 @@ const FormGroup = ({
         <div
           className={` mt-2 ${
             msgTooltip
-              ? " inline-block bg-red-600 text-white text-[10px] px-2 py-1 rounded"
+              ? " inline-block bg-red-600 text-white text-xs px-2 py-1 rounded"
               : " text-red-600 block text-sm"
           }`}
         >
@@ -65,7 +65,7 @@ const FormGroup = ({
         <div
           className={` mt-2 ${
             msgTooltip
-              ? " inline-block bg-green-600 text-white text-[10px] px-2 py-1 rounded"
+              ? " inline-block bg-green-600 text-white text-xs px-2 py-1 rounded"
               : " text-green-600 block text-sm"
           }`}
         >

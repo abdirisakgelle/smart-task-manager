@@ -1,30 +1,60 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { logOut, setUser } from "./auth/authSlice";
 
 // Dynamic base URL that works across different environments
 const getBaseUrl = () => {
-  // In development, use the current hostname
-  if (process.env.NODE_ENV === 'development') {
-    const hostname = window.location.hostname;
-    const port = '3000';
-    return `http://${hostname}:${port}/api`;
+  // Always use relative URLs to leverage Vite's proxy in development
+  return '/api';
+};
+
+// Create a base query with auth header
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: getBaseUrl(),
+  credentials: 'include',
+  prepareHeaders: (headers, { getState }) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+// Wrap base query to handle 401 globally
+const baseQueryWithAuthHandling = async (args, api, extraOptions) => {
+  let result = await rawBaseQuery(args, api, extraOptions);
+  if (result?.error?.status === 401) {
+    // Attempt refresh once
+    const refreshResponse = await rawBaseQuery(
+      { url: '/users/refresh-token', method: 'POST' },
+      api,
+      extraOptions
+    );
+    if (refreshResponse?.data?.accessToken) {
+      // Save new access token and optional user
+      localStorage.setItem('token', refreshResponse.data.accessToken);
+      if (refreshResponse.data.user) {
+        try { api.dispatch(setUser(refreshResponse.data.user)); } catch (_) {}
+      }
+      // Retry original request with new token
+      result = await rawBaseQuery(args, api, extraOptions);
+    } else {
+      // Refresh failed -> logout
+      api.dispatch(logOut());
+      if (typeof window !== 'undefined' && window.location.pathname !== '/auth/login') {
+        window.location.href = '/auth/login';
+      }
+    }
+  } else if (result?.error?.status === 403) {
+    // Do not logout on 403
+    // Optionally attach a message for UI layers
   }
-  // In production, use relative URL or environment variable
-  return process.env.REACT_APP_API_URL || '/api';
+  return result;
 };
 
 export const apiSlice = createApi({
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({
-    baseUrl: getBaseUrl(),
-    prepareHeaders: (headers, { getState }) => {
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuthHandling,
   endpoints: (builder) => ({
     getIdeas: builder.query({
       query: (params) => {
@@ -98,6 +128,22 @@ export const apiSlice = createApi({
     }),
     getEmployeesByDepartment: builder.query({
       query: (department) => `/employees/department/${encodeURIComponent(department)}`,
+    }),
+    // Hierarchy endpoints
+    getAllDepartments: builder.query({
+      query: () => '/departments',
+    }),
+    getAllSections: builder.query({
+      query: () => '/sections',
+    }),
+    getSectionsByDepartment: builder.query({
+      query: (department_id) => `/sections/department/${department_id}`,
+    }),
+    getAllUnits: builder.query({
+      query: () => '/units',
+    }),
+    getUnitsBySection: builder.query({
+      query: (section_id) => `/units/section/${section_id}`,
     }),
     getContentEmployees: builder.query({
       query: () => '/employees/department/Content',

@@ -43,7 +43,7 @@ const BorderBottomWithIcon = () => {
               >
                 <Icon
                   icon={item.icon}
-                  className="h-5 w-5 top-[1px] ltr:mr-[6px] rtl:ml-[6px] relative"
+                  className="h-5 w-5 top-[1px] ltr:mr-2 rtl:ml-2 relative"
                 />
                 {item.title}
               </TabsTrigger>

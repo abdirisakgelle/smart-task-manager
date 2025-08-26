@@ -126,7 +126,7 @@ const TicketStates = ({ height = 340 }) => {
     stroke: {
       dashArray: 8,
     },
-    colors: ["#D2232A"], // Brand red color for the arc
+          colors: ["#D2232A"], // Primary brand red color for the arc
     tooltip: {
       enabled: true,
       y: {

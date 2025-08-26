@@ -45,7 +45,7 @@ const Checkbox = ({
         >
           <Icon
             icon="fa6-solid:check"
-            className={`text-[12px] transition-all duration-100 ${
+            className={`text-xs transition-all duration-100 ${
               value ? "scale-100" : "scale-0"
             }`}
           />

@@ -4,9 +4,14 @@ const cors = require('cors');
 // Create new ticket
 exports.createTicket = async (req, res) => {
   const { customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
-  if (!agent_id) {
-    return res.status(400).json({ error: 'agent_id is required.' });
+  
+  // Use authenticated user's employee_id as agent_id if not provided
+  const finalAgentId = agent_id || req.user.employee_id;
+  
+  if (!finalAgentId) {
+    return res.status(400).json({ error: 'agent_id is required or user must be linked to an employee.' });
   }
+  
   // Validate issue_category
   const validCategories = ['App', 'IPTV'];
   if (!validCategories.includes(issue_category)) {
@@ -23,7 +28,7 @@ exports.createTicket = async (req, res) => {
   try {
     const [result] = await pool.query(
       'INSERT INTO tickets (customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [customer_phone || null, communication_channel || null, device_type || null, issue_category, issue_type, issue_description || null, agent_id, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null]
+      [customer_phone || null, communication_channel || null, device_type || null, issue_category, issue_type, issue_description || null, finalAgentId, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null]
     );
     res.status(201).json({
       ticket_id: result.insertId,
@@ -34,7 +39,7 @@ exports.createTicket = async (req, res) => {
       issue_category,
       issue_type,
       issue_description: issue_description || null,
-      agent_id,
+      agent_id: finalAgentId,
       first_call_resolution: first_call_resolution === undefined ? null : !!first_call_resolution,
       resolution_status: resolution_status || null,
       end_time: end_time || null
@@ -44,12 +49,17 @@ exports.createTicket = async (req, res) => {
   }
 };
 
-// Get all tickets
+// Get all tickets (scoped by role/team)
 exports.getAllTickets = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM tickets ORDER BY created_at DESC'
-    );
+    const { buildTeamScope } = require('../middleware/pageAccess');
+    // Use unified owner field for support tickets
+    const scope = await buildTeamScope(req, pool, { ownerField: 't.agent_id', prefer: 'section_or_department' });
+    const [rows] = await pool.query(`
+      SELECT t.* FROM tickets t
+      ${scope.where}
+      ORDER BY t.created_at DESC
+    `, scope.params);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -73,9 +83,14 @@ exports.getTicketById = async (req, res) => {
 // Update ticket by ID
 exports.updateTicket = async (req, res) => {
   const { customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
-  if (!agent_id) {
-    return res.status(400).json({ error: 'agent_id is required.' });
+  
+  // Use authenticated user's employee_id as agent_id if not provided
+  const finalAgentId = agent_id || req.user.employee_id;
+  
+  if (!finalAgentId) {
+    return res.status(400).json({ error: 'agent_id is required or user must be linked to an employee.' });
   }
+  
   // Validate issue_category
   const validCategories = ['App', 'IPTV'];
   if (!validCategories.includes(issue_category)) {
@@ -92,7 +107,7 @@ exports.updateTicket = async (req, res) => {
   try {
     const [result] = await pool.query(
       'UPDATE tickets SET customer_phone = ?, communication_channel = ?, device_type = ?, issue_category = ?, issue_type = ?, issue_description = ?, agent_id = ?, first_call_resolution = ?, resolution_status = ?, end_time = ? WHERE ticket_id = ?',
-      [customer_phone || null, communication_channel || null, device_type || null, issue_category, issue_type, issue_description || null, agent_id, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null, req.params.id]
+      [customer_phone || null, communication_channel || null, device_type || null, issue_category, issue_type, issue_description || null, finalAgentId, first_call_resolution === undefined ? null : !!first_call_resolution, resolution_status || null, end_time || null, req.params.id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Ticket not found.' });
     res.json({
@@ -103,7 +118,7 @@ exports.updateTicket = async (req, res) => {
       issue_category,
       issue_type,
       issue_description: issue_description || null,
-      agent_id,
+      agent_id: finalAgentId,
       first_call_resolution: first_call_resolution === undefined ? null : !!first_call_resolution,
       resolution_status: resolution_status || null,
       end_time: end_time || null

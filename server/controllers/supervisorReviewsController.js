@@ -28,6 +28,43 @@ const autoInsertTicketsToReviews = async () => {
   }
 };
 
+// Check and escalate tickets that have been open for more than 1 hour
+const checkAndEscalateTickets = async () => {
+  try {
+    // Find tickets that have been open for more than 1 hour and are still pending
+    const [escalatedTickets] = await pool.query(`
+      SELECT t.ticket_id, t.created_at, t.resolution_status
+      FROM tickets t
+      WHERE t.resolution_status IN ('Pending', 'In Progress')
+        AND t.created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)
+        AND t.ticket_id NOT IN (
+          SELECT ticket_id FROM supervisor_reviews WHERE issue_status = 'Escalated'
+        )
+    `);
+
+    if (escalatedTickets.length > 0) {
+      // Update these tickets to 'Escalated' status
+      const ticketIds = escalatedTickets.map(t => t.ticket_id);
+      await pool.query(
+        'UPDATE tickets SET resolution_status = ? WHERE ticket_id IN (?)',
+        ['Escalated', ticketIds]
+      );
+
+      // Update supervisor reviews to mark as escalated
+      for (const ticket of escalatedTickets) {
+        await pool.query(
+          'UPDATE supervisor_reviews SET issue_status = ? WHERE ticket_id = ?',
+          ['Escalated', ticket.ticket_id]
+        );
+      }
+
+      console.log(`Auto-escalated ${escalatedTickets.length} tickets after 1 hour of no response`);
+    }
+  } catch (err) {
+    console.error('Error in auto-escalation check:', err);
+  }
+};
+
 // Create new supervisor review
 exports.createSupervisorReview = async (req, res) => {
   const { ticket_id, supervisor_id, issue_status, resolved, notes } = req.body;
@@ -59,6 +96,9 @@ exports.getAllSupervisorReviews = async (req, res) => {
     // First, run auto-insertion to ensure all eligible tickets are in the review table
     await autoInsertTicketsToReviews();
     
+    // Then, check for tickets that need escalation
+    await checkAndEscalateTickets();
+    
     // Get supervisor reviews with joined ticket and agent name, filtered for last 3 days and not done
     const [rows] = await pool.query(`
       SELECT 
@@ -78,14 +118,25 @@ exports.getAllSupervisorReviews = async (req, res) => {
         t.first_call_resolution,
         t.resolution_status,
         t.end_time,
-        t.created_at as ticket_created_at
+        t.created_at as ticket_created_at,
+        CASE 
+          WHEN t.resolution_status = 'Escalated' THEN 'Escalated'
+          WHEN t.created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR) AND t.resolution_status IN ('Pending', 'In Progress') THEN 'Escalated'
+          ELSE t.resolution_status
+        END as effective_status
       FROM supervisor_reviews sr
       INNER JOIN tickets t ON sr.ticket_id = t.ticket_id
       LEFT JOIN employees e ON t.agent_id = e.employee_id
       WHERE t.created_at >= DATE_SUB(NOW(), INTERVAL 3 DAY)
         AND t.resolution_status != 'done' 
         AND t.resolution_status != 'Done'
-      ORDER BY t.created_at DESC
+      ORDER BY 
+        CASE 
+          WHEN t.resolution_status = 'Escalated' THEN 1
+          WHEN t.created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 2
+          ELSE 3
+        END,
+        t.created_at DESC
     `);
     res.json(rows);
   } catch (err) {

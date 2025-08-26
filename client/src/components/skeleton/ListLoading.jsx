@@ -8,11 +8,11 @@ const ListLoading = ({ items, count }) => {
         <div className="p-4 w-full mx-auto" key={i}>
           <div className="animate-pulse flex items-center space-x-4">
             <div className="flex-none flex space-x-2 items-center">
-              <div className="rounded h-5 w-5 bg-[#C4C4C4] dark:bg-gray-500"></div>
-              <div className="rounded h-5 w-5 bg-[#C4C4C4] dark:bg-gray-500"></div>
-              <div className="h-8 w-8 rounded-full bg-[#C4C4C4] dark:bg-gray-500"></div>
+                      <div className="rounded h-5 w-5 bg-gray-300 dark:bg-gray-500"></div>
+        <div className="rounded h-5 w-5 bg-gray-300 dark:bg-gray-500"></div>
+        <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-500"></div>
             </div>
-            <div className="flex-1 bg-[#C4C4C4] dark:bg-gray-500 h-2"></div>
+                          <div className="flex-1 bg-gray-300 dark:bg-gray-500 h-2"></div>
           </div>
         </div>
       ))}

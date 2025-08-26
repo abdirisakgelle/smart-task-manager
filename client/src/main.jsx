@@ -9,7 +9,10 @@ import "react-toastify/dist/ReactToastify.css";
 import { Provider } from "react-redux";
 import store from "./store";
 import "react-toastify/dist/ReactToastify.css";
+import { logOut } from "./store/api/auth/authSlice";
 // import "./server";
+
+// Removed global 401 auto-logout interceptor to allow silent refresh logic in API layer
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <>

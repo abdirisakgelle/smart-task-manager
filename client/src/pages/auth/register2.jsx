@@ -51,7 +51,7 @@ const register2 = () => {
                 </span>
               </div>
               <div className="relative border-b-gray-10 dark:border-gray-700  border-b pt-6">
-                <div className="absolute text-[12px] inline-block bg-white dark:bg-gray-800 text-gray-400 left-1/2 top-1/2 transform -translate-x-1/2 px-4 min-w-max text-sm  font-normal">
+                <div className="absolute text-xs inline-block bg-white dark:bg-gray-800 text-gray-400 left-1/2 top-1/2 transform -translate-x-1/2 px-4 min-w-max text-sm  font-normal">
                   OR SIGN UP WITH EMAIl
                 </div>
               </div>

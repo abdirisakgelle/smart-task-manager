@@ -34,6 +34,14 @@ export default defineConfig({
       '/api': 'http://localhost:3000',
     },
   },
+  
+  preview: {
+    host: '0.0.0.0',
+    port: 4173,
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
 
   // Add SPA routing support for production builds
   build: {

@@ -1,7 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
-const { adminAuth } = require('../middleware/auth');
+const { adminAuth, requireRole, requireAnyRole, scopeDataByRole, verifyToken } = require('../middleware/auth');
+
+// Generic dashboard route - automatically routes to role-specific dashboard
+router.get('/', verifyToken, scopeDataByRole, dashboardController.getGenericDashboard);
+
+// Role-based dashboard routes
+router.get('/admin', verifyToken, requireRole('admin'), scopeDataByRole, dashboardController.getAdminDashboard);
+router.get('/ceo', verifyToken, requireRole('ceo'), scopeDataByRole, dashboardController.getCeoDashboard);
+router.get('/section', verifyToken, requireRole('manager'), scopeDataByRole, dashboardController.getSectionManagerDashboard);
+router.get('/agent', verifyToken, requireRole('agent'), scopeDataByRole, dashboardController.getAgentDashboard);
+router.get('/content', verifyToken, requireRole('media'), scopeDataByRole, dashboardController.getContentDashboard);
+router.get('/supervisor', verifyToken, requireRole('supervisor'), scopeDataByRole, dashboardController.getSupervisorDashboard);
+router.get('/follow-up', verifyToken, requireRole('follow_up'), scopeDataByRole, dashboardController.getFollowUpDashboard);
+router.get('/user', verifyToken, scopeDataByRole, dashboardController.getUserDashboard);
 
 router.get('/stats', dashboardController.getDashboardStats);
 router.get('/admin-kpis', adminAuth, dashboardController.getAdminKPIs);

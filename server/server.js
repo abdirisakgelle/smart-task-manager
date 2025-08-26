@@ -2,8 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const autoInsertReviewsMiddleware = require('./middleware/autoInsertReviews');
+const cookieParser = require('cookie-parser');
+const { v4: uuidv4 } = require('uuid');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Enable CORS with dynamic origin detection
 app.use(cors({
@@ -42,6 +44,28 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(cookieParser());
+
+// Request ID and structured logging (basic)
+app.use((req, res, next) => {
+  const requestId = uuidv4();
+  req.requestId = requestId;
+  res.setHeader('x-request-id', requestId);
+  const start = Date.now();
+  res.on('finish', () => {
+    try {
+      const durationMs = Date.now() - start;
+      const userId = req.user?.user_id || null;
+      const route = req.originalUrl;
+      const method = req.method;
+      // Minimal structured log
+      console.log(JSON.stringify({
+        level: 'info', requestId, method, route, statusCode: res.statusCode, userId, durationMs
+      }));
+    } catch (_) {}
+  });
+  next();
+});
 
 // Apply auto-insert middleware
 app.use(autoInsertReviewsMiddleware);
@@ -61,6 +85,10 @@ const dashboardRoutes = require('./routes/dashboard');
 const notificationsRoutes = require('./routes/notifications');
 const boardsRoutes = require('./routes/boards');
 const tasksRoutes = require('./routes/tasks');
+const departmentsRoutes = require('./routes/departments');
+const sectionsRoutes = require('./routes/sections');
+const unitsRoutes = require('./routes/units');
+const permissionsRoutes = require('./routes/permissions');
 const { scheduleNotificationCleanup } = require('./utils/scheduler');
 
 app.use('/api/users', usersRoutes);
@@ -77,6 +105,10 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/boards', boardsRoutes);
 app.use('/api/tasks', tasksRoutes);
+app.use('/api/departments', departmentsRoutes);
+app.use('/api/sections', sectionsRoutes);
+app.use('/api/units', unitsRoutes);
+app.use('/api/permissions', permissionsRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello from backend!');

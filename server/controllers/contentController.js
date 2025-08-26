@@ -107,9 +107,12 @@ exports.createContent = async (req, res) => {
   }
 };
 
-// Get all content with employee names
+// Get all content with employee names (scoped)
 exports.getAllContent = async (req, res) => {
   try {
+    const { buildTeamScope } = require('../middleware/pageAccess');
+    const scope = await buildTeamScope(req, pool, { ownerField: 'c.director_id', prefer: 'section_or_department' });
+
     const [rows] = await pool.query(`
       SELECT 
         c.*,
@@ -118,8 +121,9 @@ exports.getAllContent = async (req, res) => {
       FROM content c
       LEFT JOIN ideas i ON c.idea_id = i.idea_id
       LEFT JOIN employees d ON c.director_id = d.employee_id
+      ${scope.where}
       ORDER BY c.content_id DESC
-    `);
+    `, scope.params);
     res.json(rows);
   } catch (err) {
     console.error('Error fetching content:', err);

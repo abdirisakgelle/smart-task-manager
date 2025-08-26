@@ -3,11 +3,17 @@ import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import { useSelector } from "react-redux";
 import { useTable, useSortBy, usePagination } from "react-table";
+import TaskTimeline from "@/components/TaskTimeline";
+import TaskTimer from "@/components/TaskTimer";
+import { ExtensionApprovalModal } from "@/components/TaskModals";
+import { toast } from 'react-toastify';
+import { localDateTimeToISO, formatDueDateForDisplay, formatDueTimeForDisplay } from '@/utils/timeUtils';
 
 const TasksPage = () => {
   const currentUser = useSelector((state) => state.auth.user);
   const [tasks, setTasks] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -16,13 +22,20 @@ const TasksPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [extensionFilter, setExtensionFilter] = useState("all");
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [extensionModalOpen, setExtensionModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
     description: "",
     assigned_to: "",
     priority: "Medium",
-    due_date: "",
+    due_date: new Date().toISOString().split('T')[0], // Default to today
+    due_time: "14:00", // Default to 2:00 PM
     send_sms: false,
   });
 
@@ -32,7 +45,10 @@ const TasksPage = () => {
     fetchTasks();
     fetchEmployees();
     fetchStats();
-  }, []);
+    if (currentUser?.role === 'manager' || currentUser?.role === 'media') {
+      fetchTeamMembers();
+    }
+  }, [currentUser?.role]);
 
   const fetchTasks = async () => {
     try {
@@ -82,6 +98,21 @@ const TasksPage = () => {
     }
   };
 
+  const fetchTeamMembers = async () => {
+    try {
+      const response = await fetch("/api/tasks/team-members", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch team members");
+      const data = await response.json();
+      setTeamMembers(data.teamMembers || []);
+    } catch (err) {
+      console.error("Failed to fetch team members:", err);
+    }
+  };
+
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -94,25 +125,75 @@ const TasksPage = () => {
     e.preventDefault();
     setFormError("");
 
-    if (!form.title || !form.assigned_to || !form.due_date) {
+
+
+    // Basic validation
+    if (!form.title || !form.assigned_to || !form.due_date || !form.due_time) {
       setFormError("Please fill all required fields.");
       return;
     }
-
+    
     setCreating(true);
     try {
+      let dueDate;
+      
+      // Use date and time from form
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      
+      // Always use the timeUtils for consistent timezone handling
+      const localISOString = localDateTimeToISO(form.due_date, form.due_time);
+      
+      console.log('🔍 Task Creation Debug:', {
+        formDueDate: form.due_date,
+        formDueTime: form.due_time,
+        localISOString: localISOString
+      });
+      
+      // Use the string directly without creating a Date object
+      dueDate = localISOString;
+      
+      // Check if the selected time is in the past (for today's tasks)
+      if (form.due_date === today && dueDate <= now) {
+        // If selected time is in the past, set to 1 hour from now
+        dueDate = new Date(now.getTime() + 60 * 60 * 1000);
+      }
+      
+      const taskData = {
+        title: form.title,
+        description: form.description,
+        assigned_to: form.assigned_to,
+        priority: form.priority,
+        due_date: dueDate, // Send the string directly
+        send_sms: form.send_sms
+      };
+      
+
+      
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(taskData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error("Failed to create task. " + errorText);
+        console.error('API Error:', errorText);
+        
+        // Parse the error message for better user experience
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error && errorData.error.includes('past')) {
+            throw new Error("The selected due date is in the past. Please select a future date.");
+          } else {
+            throw new Error("Failed to create task. " + errorData.error);
+          }
+        } catch (parseError) {
+          throw new Error("Failed to create task. " + errorText);
+        }
       }
 
       setShowModal(false);
@@ -121,7 +202,8 @@ const TasksPage = () => {
         description: "",
         assigned_to: "",
         priority: "Medium",
-        due_date: "",
+        due_date: new Date().toISOString().split('T')[0], // Reset to today
+        due_time: "14:00", // Reset to 2:00 PM
         send_sms: false,
       });
       await fetchTasks();
@@ -175,6 +257,43 @@ const TasksPage = () => {
     }
   };
 
+  const handleExtensionApproval = async (formData) => {
+    try {
+      setModalLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`/api/tasks/${selectedTask.task_id}/approve-extension`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to approve extension');
+      }
+
+      toast.success(`Extension ${formData.extension_status.toLowerCase()} successfully`);
+      setExtensionModalOpen(false);
+      setSelectedTask(null);
+      await fetchTasks();
+      await fetchStats();
+    } catch (error) {
+      console.error('Error approving extension:', error);
+      toast.error(error.message || 'Failed to approve extension');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const openExtensionModal = (task) => {
+    setSelectedTask(task);
+    setExtensionModalOpen(true);
+  };
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "High":
@@ -210,23 +329,33 @@ const TasksPage = () => {
   };
 
   const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      const statusMatch = statusFilter === "all" || task.status === statusFilter;
-      const priorityMatch = priorityFilter === "all" || task.priority === priorityFilter;
-      const assigneeMatch = assigneeFilter === "all" || task.assigned_to === parseInt(assigneeFilter);
-      return statusMatch && priorityMatch && assigneeMatch;
-    });
-  }, [tasks, statusFilter, priorityFilter, assigneeFilter]);
+    return tasks
+      .filter((task) => {
+        const statusMatch = statusFilter === "all" || task.status === statusFilter;
+        const priorityMatch = priorityFilter === "all" || task.priority === priorityFilter;
+        const assigneeMatch = assigneeFilter === "all" || task.assigned_to === parseInt(assigneeFilter);
+        
+        // Extension filter logic
+        let extensionMatch = true;
+        if (extensionFilter === "pending") {
+          extensionMatch = task.extension_requested && task.extension_status === "Pending";
+        } else if (extensionFilter === "approved") {
+          extensionMatch = task.extension_requested && task.extension_status === "Approved";
+        } else if (extensionFilter === "rejected") {
+          extensionMatch = task.extension_requested && task.extension_status === "Rejected";
+        } else if (extensionFilter === "none") {
+          extensionMatch = !task.extension_requested;
+        }
+        
+        return statusMatch && priorityMatch && assigneeMatch && extensionMatch;
+      })
+      .sort((a, b) => b.task_id - a.task_id); // Sort by task_id in descending order (newest first)
+  }, [tasks, statusFilter, priorityFilter, assigneeFilter, extensionFilter]);
 
   const canCreateTasks = currentUser?.role === "admin" || currentUser?.role === "manager" || currentUser?.role === "supervisor";
   const canDeleteTasks = currentUser?.role === "admin" || currentUser?.role === "manager";
 
   const COLUMNS = [
-    {
-      Header: "Task ID",
-      accessor: "task_id",
-      Cell: ({ value }) => `#${String(value).padStart(4, "0")}`,
-    },
     {
       Header: "Title",
       accessor: "title",
@@ -268,17 +397,47 @@ const TasksPage = () => {
       ),
     },
     {
+      Header: "Extension",
+      accessor: "extension_status",
+      Cell: ({ value, row }) => {
+        if (!row.original.extension_requested) {
+          return <span className="text-gray-400 text-xs">None</span>;
+        }
+        
+        const statusColors = {
+          'Pending': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+          'Approved': 'bg-green-100 text-green-700 border-green-200',
+          'Rejected': 'bg-red-100 text-red-700 border-red-200'
+        };
+        
+        return (
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${statusColors[value] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+              {value || 'Pending'}
+            </span>
+            
+            {/* Show attention indicator for pending extensions */}
+            {row.original.extension_status === 'Pending' && (
+              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" title="Extension request pending approval"></span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       Header: "Due Date",
       accessor: "due_date",
       Cell: ({ value, row }) => (
-        <span className={isOverdue(value, row.original.status) ? "text-red-600 font-medium" : ""}>
-          {new Date(value).toLocaleDateString()}
-        </span>
+        <div>
+          <span className={isOverdue(value, row.original.status) ? "text-red-600 font-medium" : ""}>
+            {formatDueDateForDisplay(value)}
+          </span>
+          <br />
+          <span className="text-xs text-gray-500">
+            {formatDueTimeForDisplay(value)}
+          </span>
+        </div>
       ),
-    },
-    {
-      Header: "Created By",
-      accessor: "created_by_name",
     },
     {
       Header: "Actions",
@@ -286,14 +445,38 @@ const TasksPage = () => {
         <div className="flex space-x-2">
           <button
             className="btn btn-xs btn-outline"
-            title="View"
+            title="View Timeline"
+            onClick={() => {
+              setSelectedTaskId(row.original.task_id);
+              setShowTimeline(true);
+            }}
+          >
+            <Icon icon="ph:clock" className="text-blue-500 text-lg" />
+          </button>
+          <button
+            className="btn btn-xs btn-outline"
+            title="View Details"
             onClick={() => {
               // View task details (could open a modal)
               console.log("View task:", row.original);
             }}
           >
-            <Icon icon="ph:eye" className="text-blue-500 text-lg" />
+            <Icon icon="ph:eye" className="text-green-500 text-lg" />
           </button>
+          
+          {/* Manage Extension Button - Only show for admin/manager when extension is requested and task is not completed */}
+          {row.original.extension_requested && 
+           (currentUser?.role === 'admin' || currentUser?.role === 'manager') && 
+           row.original.status !== 'Completed' && (
+            <button
+              className="btn btn-xs btn-outline"
+              title="Manage Extension"
+              onClick={() => openExtensionModal(row.original)}
+            >
+              <Icon icon="ph:gear" className="text-orange-500 text-lg" />
+            </button>
+          )}
+
           {canDeleteTasks && (
             <button
               className="btn btn-xs btn-outline"
@@ -407,7 +590,7 @@ const TasksPage = () => {
       {/* Filters */}
       <Card>
         <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Status
@@ -448,11 +631,27 @@ const TasksPage = () => {
                 onChange={(e) => setAssigneeFilter(e.target.value)}
               >
                 <option value="all">All Assignees</option>
-                {employees.map((employee) => (
+                {((currentUser?.role === 'manager' || currentUser?.role === 'media') ? teamMembers : employees).map((employee) => (
                   <option key={employee.employee_id} value={employee.employee_id}>
                     {employee.name}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Extension Status
+              </label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={extensionFilter}
+                onChange={(e) => setExtensionFilter(e.target.value)}
+              >
+                <option value="all">All Extensions</option>
+                <option value="pending">Pending Requests</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="none">No Extension</option>
               </select>
             </div>
             <div className="flex items-end">
@@ -462,6 +661,7 @@ const TasksPage = () => {
                   setStatusFilter("all");
                   setPriorityFilter("all");
                   setAssigneeFilter("all");
+                  setExtensionFilter("all");
                 }}
               >
                 Clear Filters
@@ -529,36 +729,34 @@ const TasksPage = () => {
       {/* Create Task Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8 px-4">
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowModal(false)}></div>
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-auto">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto border border-gray-100">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6">
-              <div className="flex items-center gap-3">
-                <Icon icon="ph:task" className="w-6 h-6 text-primary" />
-                <div>
-                  <h2 className="text-xl font-medium text-slate-900">Assign New Task</h2>
-                  <p className="text-sm text-slate-500 mt-0.5">Create and assign a task to a team member</p>
-                </div>
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Assign New Task</h2>
+                <p className="text-sm text-gray-500 mt-1">Create and assign a task to a team member</p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-slate-500 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
               >
                 <Icon icon="heroicons:x-mark" className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={handleCreateTask} className="px-6 pb-6">
-              <div className="space-y-5">
+            <form onSubmit={handleCreateTask} className="p-6">
+              <div className="space-y-4">
+                {/* Task Title */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Task Title *
                   </label>
                   <input
                     type="text"
                     name="title"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                     placeholder="Enter task title"
                     value={form.title}
                     onChange={handleFormChange}
@@ -566,34 +764,36 @@ const TasksPage = () => {
                   />
                 </div>
 
+                {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description
                   </label>
                   <textarea
                     name="description"
                     rows="3"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-none"
                     placeholder="Describe the task in detail..."
                     value={form.description}
                     onChange={handleFormChange}
                   />
                 </div>
 
+                {/* Assign To & Priority */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Assign To *
                     </label>
                     <select
                       name="assigned_to"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                       value={form.assigned_to}
                       onChange={handleFormChange}
                       required
                     >
                       <option value="">Select employee</option>
-                      {employees.map((employee) => (
+                      {((currentUser?.role === 'manager' || currentUser?.role === 'media') ? teamMembers : employees).map((employee) => (
                         <option key={employee.employee_id} value={employee.employee_id}>
                           {employee.name}
                         </option>
@@ -601,12 +801,12 @@ const TasksPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Priority
                     </label>
                     <select
                       name="priority"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                       value={form.priority}
                       onChange={handleFormChange}
                     >
@@ -617,36 +817,55 @@ const TasksPage = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                    Due Date *
-                  </label>
-                  <input
-                    type="date"
-                    name="due_date"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                    value={form.due_date}
-                    onChange={handleFormChange}
-                    required
-                  />
+                {/* Due Date & Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Due Date *
+                    </label>
+                    <input
+                      type="date"
+                      name="due_date"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                      value={form.due_date}
+                      onChange={handleFormChange}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Due Time *
+                    </label>
+                    <input
+                      type="time"
+                      name="due_time"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                      value={form.due_time || '14:00'}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* SMS Notification */}
+                <div className="flex items-center gap-3 pt-2">
                   <input
                     type="checkbox"
                     id="send_sms"
                     name="send_sms"
                     checked={form.send_sms}
                     onChange={handleFormChange}
-                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
-                  <label htmlFor="send_sms" className="text-sm text-slate-600">
-                    Send SMS notification to assigned employee
+                  <label htmlFor="send_sms" className="text-sm text-gray-700">
+                    Send SMS notification
                   </label>
                 </div>
 
+                {/* Error Message */}
                 {formError && (
-                  <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
+                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-lg flex items-center gap-2">
                     <Icon icon="heroicons:exclamation-circle" className="w-5 h-5 flex-shrink-0" />
                     <span>{formError}</span>
                   </div>
@@ -654,18 +873,18 @@ const TasksPage = () => {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex items-center justify-end gap-3 mt-8">
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
                   disabled={creating}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 focus:ring-2 focus:ring-primary/20 transition-colors min-w-[100px] flex items-center justify-center"
+                  className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500/20 transition-colors min-w-[100px] flex items-center justify-center"
                   disabled={creating}
                 >
                   {creating ? (
@@ -682,6 +901,26 @@ const TasksPage = () => {
           </div>
         </div>
       )}
+      
+      {/* Timeline Modal */}
+      {showTimeline && selectedTaskId && (
+        <TaskTimeline
+          taskId={selectedTaskId}
+          onClose={() => {
+            setShowTimeline(false);
+            setSelectedTaskId(null);
+          }}
+        />
+      )}
+
+      {/* Extension Approval Modal */}
+      <ExtensionApprovalModal
+        isOpen={extensionModalOpen}
+        onClose={() => setExtensionModalOpen(false)}
+        onSubmit={handleExtensionApproval}
+        task={selectedTask}
+        loading={modalLoading}
+      />
     </div>
   );
 };

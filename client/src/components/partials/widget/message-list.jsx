@@ -32,7 +32,7 @@ const MessageList = () => {
                   <div className="text-gray-800 dark:text-gray-300 text-sm font-medium mb-1`">
                     {item.title}
                   </div>
-                  <div className="text-xs hover:text-[#68768A] font-normal text-gray-600 dark:text-gray-300">
+                  <div className="text-xs hover:text-gray-500 font-normal text-gray-600 dark:text-gray-300">
                     {item.desc}
                   </div>
                   <div className="text-gray-400 dark:text-gray-400 text-xs mt-1">
@@ -41,7 +41,7 @@ const MessageList = () => {
                 </div>
                 {item.hasnotifaction && (
                   <div className="flex-0">
-                    <span className="h-4 w-4 bg-red-600 border border-none rounded-full text-[10px] flex items-center justify-center text-white">
+                    <span className="h-4 w-4 bg-red-600 border border-none rounded-full text-xs flex items-center justify-center text-white">
                       {item.notification_count}
                     </span>
                   </div>

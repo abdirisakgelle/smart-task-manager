@@ -1,245 +1,350 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import Loading from "@/components/Loading";
+import DashboardStats from "@/components/DashboardStats";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
-
-import DashboardStats from "@/components/DashboardStats";
 import TicketResolutionPie from "@/components/partials/widget/chart/TicketResolutionPie";
-import { TicketVolumeAreaChart } from "@/components/partials/widget/chart/TicketVolumeAreaChart";
-import { DailyTicketDistribution } from "@/components/partials/widget/chart/DailyTicketDistribution";
+import { CustomerSupportTrendsChart } from "@/components/partials/widget/chart/CustomerSupportTrendsChart";
+import { DigitalMediaActivityChart } from "@/components/partials/widget/chart/DigitalMediaActivityChart";
 import { RecentTicketsWidget } from "@/components/partials/widget/RecentTicketsWidget";
 import { IdeasProducedTodayWidget } from "@/components/partials/widget/IdeasProducedTodayWidget";
+import { TopContributorsWidget } from "@/components/partials/widget/TopContributorsWidget";
+import { BestPerformersWidget } from "@/components/partials/widget/BestPerformersWidget";
+import { getApiUrl } from "@/utils/apiUtils";
 
 const Dashboard = () => {
-  const [topContributors, setTopContributors] = useState([]);
-  const [topIssues, setTopIssues] = useState([]);
-  const [ticketResolution, setTicketResolution] = useState([]);
-  const [loadingContrib, setLoadingContrib] = useState(true);
-  const [loadingIssues, setLoadingIssues] = useState(true);
-  const [loadingResolution, setLoadingResolution] = useState(true);
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch top contributors
-    fetch('/api/dashboard/top-contributors')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setTopContributors(data);
+    // For admin users, show comprehensive dashboard
+    if ((user?.system_role || user?.role) === 'admin') {
+      fetchAdminDashboard();
+    } else {
+      // For non-admin users, redirect to appropriate dashboard
+      if (user) {
+        const role = user.system_role || user.role || 'user';
+        if (role === 'ceo') {
+          navigate('/dashboard/admin');
+        } else if (role === 'media') {
+          navigate('/dashboard/content');
         } else {
-          setTopContributors([]);
+          navigate('/dashboard/user');
         }
-      })
-      .finally(() => setLoadingContrib(false));
+      } else {
+        navigate('/login');
+      }
+    }
+  }, [user, navigate]);
 
-    // Fetch top complained issues
-    fetch('/api/dashboard/top-complained-issues')
-      .then(res => res.json())
-      .then(data => setTopIssues(data))
-      .finally(() => setLoadingIssues(false));
+  const fetchAdminDashboard = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(getApiUrl('/dashboard/admin'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-    // Fetch ticket resolution overview
-    fetch('/api/dashboard/ticket-resolution-overview')
-      .then(res => res.json())
-      .then(data => setTicketResolution(data))
-      .finally(() => setLoadingResolution(false));
-  }, []);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-  return (
-    <div className="space-y-8">
-      {/* Dashboard Stats */}
-      <div className="mb-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
-          <p className="text-gray-600">Monitor your key performance indicators and operational metrics</p>
+      const data = await response.json();
+      setDashboardData(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching admin dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show loading for admin users while fetching data
+  if ((user?.system_role || user?.role) === 'admin' && loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loading />
+          <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
         </div>
-        <DashboardStats />
       </div>
+    );
+  }
 
-      {/* Main Charts Section */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <TicketVolumeAreaChart />
-        <DailyTicketDistribution />
+  // Show error for admin users
+  if ((user?.system_role || user?.role) === 'admin' && error) {
+    return (
+      <div className="text-center p-6">
+        <Icon icon="ph:warning" className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Dashboard</h3>
+        <p className="text-gray-600">{error}</p>
       </div>
+    );
+  }
 
-      {/* Bottom grid: Top Contributors, Top Complained Issues, Ticket Resolution Overview */}
-      <div className="grid xl:grid-cols-3 gap-7">
-        <Card 
-          title={
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 rounded-lg">
-                <Icon icon="ph:users" className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Top Contributors</h3>
-                <p className="text-sm text-gray-600">Ideas submitted this week</p>
-              </div>
-            </div>
-          }
-          className="border border-gray-200 shadow-sm"
-          bodyClass="p-6"
-        >
-          {loadingContrib ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse flex items-center justify-between p-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                    <div className="h-4 bg-gray-200 rounded w-24"></div>
-                  </div>
-                  <div className="h-6 bg-gray-200 rounded w-8"></div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {Array.isArray(topContributors) && topContributors.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                  <Icon icon="ph:users" className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium">No contributors this week</p>
-                  <p className="text-sm text-gray-400 mt-1">Contributors will appear here when they submit ideas</p>
-                </div>
-              ) : (
-                Array.isArray(topContributors) && topContributors.slice(0, 3).map((c, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center border border-blue-200">
-                        <span className="text-sm font-bold text-blue-700">
-                          {c.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-900">{c.name}</span>
-                        <p className="text-xs text-gray-500">Active contributor</p>
-                      </div>
-                    </div>
-                    <span className="text-gray-700 font-bold bg-blue-50 px-3 py-1 rounded-full text-sm border border-blue-200">
-                      {c.total_ideas}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </Card>
+  // Show comprehensive admin dashboard
+  if ((user?.system_role || user?.role) === 'admin' && dashboardData) {
+    return (
+      <div className="space-y-8">
+        <div className="mb-6 flex items-center gap-3">
+          <Icon icon="ph:shield-check" className="w-8 h-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-blue-700">Admin Dashboard</h1>
+        </div>
         
-        <Card 
-          title={
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-red-50 rounded-lg">
-                <Icon icon="ph:warning" className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Top Complained Issues</h3>
-                <p className="text-sm text-gray-600">Based on today's tickets</p>
-              </div>
-            </div>
-          }
-          className="border border-gray-200 shadow-sm"
-          bodyClass="p-6"
-        >
-          {loadingIssues ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse flex items-center justify-between p-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+        {dashboardData && (
+          <>
+            {/* New 4x4 KPI Cards Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Row 1 */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Tickets Today</h3>
+                    <p className="text-2xl font-bold text-blue-600">{dashboardData.data?.kpis?.tickets_today || 0}</p>
+                    <p className="text-sm text-gray-500">Total</p>
                   </div>
-                  <div className="h-6 bg-gray-200 rounded w-8"></div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {topIssues.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                  <Icon icon="ph:check-circle" className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium">No issues reported today</p>
-                  <p className="text-sm text-gray-400 mt-1">Great job! All systems are running smoothly</p>
-                </div>
-              ) : (
-                topIssues.slice(0, 3).map((issue, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        i === 0 ? 'bg-red-500' :
-                        i === 1 ? 'bg-orange-500' :
-                        i === 2 ? 'bg-yellow-500' :
-                        'bg-gray-400'
-                      }`}></div>
-                      <div>
-                        <span className="text-gray-900 font-semibold">{issue.issue_type}</span>
-                        <p className="text-xs text-gray-500">Customer reported</p>
-                      </div>
-                    </div>
-                    <span className="text-gray-700 font-bold bg-red-50 px-3 py-1 rounded-full text-sm border border-red-200">
-                      {issue.issue_count}
-                    </span>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:ticket" className="w-6 h-6 text-blue-600" />
                   </div>
-                ))
-              )}
-            </div>
-          )}
-        </Card>
-        
-        <Card 
-          title={
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-green-50 rounded-lg">
-                <Icon icon="ph:chart-pie" className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Ticket Resolution Overview</h3>
-                <p className="text-sm text-gray-600">Breakdown of today's tickets by status</p>
-              </div>
-            </div>
-          }
-          className="border border-gray-200 shadow-sm"
-          bodyClass="p-6"
-        >
-          {loadingResolution ? (
-            <div className="flex flex-col items-center py-8">
-              <div className="animate-pulse">
-                <div className="w-40 h-40 bg-gray-200 rounded-full mx-auto mb-6"></div>
-                <div className="space-y-3">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex justify-between">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                      <div className="h-4 bg-gray-200 rounded w-8"></div>
-                    </div>
-                  ))}
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <div className="mb-6">
-                <TicketResolutionPie data={ticketResolution} height={200} />
-              </div>
-              <div className="w-full space-y-3">
-                {ticketResolution.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
-                    <div className="flex items-center space-x-3">
-                      <div 
-                        className="w-4 h-4 rounded-full border-2 border-white shadow-sm" 
-                        style={{ backgroundColor: item.color }}
-                      ></div>
-                      <span className="text-gray-900 font-medium">{item.name}</span>
-                    </div>
-                    <span className="font-bold text-gray-900 bg-white px-3 py-1 rounded-full text-sm border border-gray-200">
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-      </div>
+              </Card>
 
-      {/* New Section: Recent Tickets and Ideas Produced Today */}
-      <div className="grid lg:grid-cols-2 gap-7">
-        <RecentTicketsWidget />
-        <IdeasProducedTodayWidget />
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Avg Resolution Time</h3>
+                    <p className="text-2xl font-bold text-yellow-600">{dashboardData.data?.kpis?.avg_resolution_time || 0}m</p>
+                    <p className="text-sm text-gray-500">Minutes</p>
+                  </div>
+                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:clock" className="w-6 h-6 text-yellow-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Escalations</h3>
+                    <p className="text-2xl font-bold text-red-600">{dashboardData.data?.kpis?.escalations || 0}</p>
+                    <p className="text-sm text-gray-500">Today</p>
+                  </div>
+                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:warning" className="w-6 h-6 text-red-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Reopened Tickets</h3>
+                    <p className="text-2xl font-bold text-orange-600">{dashboardData.data?.kpis?.reopened_tickets || 0}</p>
+                    <p className="text-sm text-gray-500">Follow-up Reports Today</p>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:arrow-clockwise" className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </Card>
+
+              {/* Row 2 */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">FCR Rate</h3>
+                    <p className="text-2xl font-bold text-green-600">{dashboardData.data?.kpis?.fcr_rate || 0}%</p>
+                    <p className="text-sm text-gray-500">First Call Resolution</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:check-circle" className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Satisfaction</h3>
+                    <p className="text-2xl font-bold text-pink-600">{dashboardData.data?.kpis?.satisfaction || 0}%</p>
+                    <p className="text-sm text-gray-500">Customer Rating</p>
+                  </div>
+                  <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:heart" className="w-6 h-6 text-pink-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Ideas Today</h3>
+                    <p className="text-2xl font-bold text-indigo-600">{dashboardData.data?.kpis?.ideas_today || 0}</p>
+                    <p className="text-sm text-gray-500">Submitted</p>
+                  </div>
+                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:lightbulb" className="w-6 h-6 text-indigo-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Content Produced</h3>
+                    <p className="text-2xl font-bold text-purple-600">{dashboardData.data?.kpis?.content_produced || 0}</p>
+                    <p className="text-sm text-gray-500">Completed</p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:file-text" className="w-6 h-6 text-purple-600" />
+                  </div>
+                </div>
+              </Card>
+
+              {/* Row 3 */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Productions</h3>
+                    <p className="text-2xl font-bold text-teal-600">{dashboardData.data?.kpis?.productions || 0}</p>
+                    <p className="text-sm text-gray-500">Completed Today</p>
+                  </div>
+                  <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:gear" className="w-6 h-6 text-teal-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Posts Published</h3>
+                    <p className="text-2xl font-bold text-cyan-600">{dashboardData.data?.kpis?.posts_published || 0}</p>
+                    <p className="text-sm text-gray-500">Social Media</p>
+                  </div>
+                  <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:megaphone" className="w-6 h-6 text-cyan-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Active Users</h3>
+                    <p className="text-2xl font-bold text-emerald-600">{dashboardData.data?.kpis?.active_users || 0}</p>
+                    <p className="text-sm text-gray-500">System Users</p>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:users" className="w-6 h-6 text-emerald-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Employees</h3>
+                    <p className="text-2xl font-bold text-lime-600">{dashboardData.data?.kpis?.employees || 0}</p>
+                    <p className="text-sm text-gray-500">Total Staff</p>
+                  </div>
+                  <div className="w-12 h-12 bg-lime-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:user-plus" className="w-6 h-6 text-lime-600" />
+                  </div>
+                </div>
+              </Card>
+
+              {/* Row 4 */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Sections</h3>
+                    <p className="text-2xl font-bold text-amber-600">{dashboardData.data?.kpis?.sections || 0}</p>
+                    <p className="text-sm text-gray-500">Departments</p>
+                  </div>
+                  <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:buildings" className="w-6 h-6 text-amber-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Departments</h3>
+                    <p className="text-2xl font-bold text-violet-600">{dashboardData.data?.kpis?.departments || 0}</p>
+                    <p className="text-sm text-gray-500">Total</p>
+                  </div>
+                  <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:office-chair" className="w-6 h-6 text-violet-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Total Tasks</h3>
+                    <p className="text-2xl font-bold text-rose-600">{dashboardData.data?.kpis?.total_tasks || 0}</p>
+                    <p className="text-sm text-gray-500">All Tasks</p>
+                  </div>
+                  <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:list-checks" className="w-6 h-6 text-rose-600" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">Overdue Tasks</h3>
+                    <p className="text-2xl font-bold text-slate-600">{dashboardData.data?.kpis?.overdue_tasks || 0}</p>
+                    <p className="text-sm text-gray-500">Past Due</p>
+                  </div>
+                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:clock-countdown" className="w-6 h-6 text-slate-600" />
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <CustomerSupportTrendsChart data={dashboardData.data?.charts?.customer_support_trends || []} />
+              <DigitalMediaActivityChart data={dashboardData.data?.charts?.digital_media_activity || []} />
+            </div>
+
+            {/* Recent Activity Widgets */}
+            <div className="grid lg:grid-cols-2 gap-7">
+              <RecentTicketsWidget />
+              <IdeasProducedTodayWidget />
+            </div>
+
+            {/* Weekly Performance Widgets */}
+            <div className="grid lg:grid-cols-2 gap-7">
+              <TopContributorsWidget data={dashboardData.data?.widgets?.top_contributors || []} />
+              <BestPerformersWidget data={dashboardData.data?.widgets?.best_performers || []} />
+            </div>
+
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // For non-admin users, show loading while redirecting
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <Loading />
+        <p className="mt-4 text-gray-600">Redirecting to your dashboard...</p>
       </div>
     </div>
   );

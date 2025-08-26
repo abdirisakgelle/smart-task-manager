@@ -95,7 +95,7 @@ const DailyTicketVolume = ({ height = 340 }) => {
         },
       },
     },
-    colors: ["#D2232A"], // Brand red color
+          colors: ["#D2232A"], // Primary brand red color
     dataLabels: {
       enabled: true,
       formatter: function (val) {

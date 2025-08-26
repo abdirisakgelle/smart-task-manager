@@ -194,7 +194,7 @@ const RecentOrderTable = () => {
                               ) : (
                                 <Icon
                                   icon="ri:expand-up-down-fill"
-                                  className="text-[15px] text-gray-400"
+                                  className="text-sm text-gray-400"
                                 />
                               )}
                             </span>

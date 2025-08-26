@@ -11,7 +11,7 @@ function Button({
   icon,
   loadingClass = "unset-classname",
   iconPosition = "left",
-  iconClass = "text-[20px]",
+  iconClass = "text-lg",
   link,
   onClick,
   div,

@@ -26,8 +26,17 @@ async function initializeDatabase() {
     // Execute each statement
     for (const statement of statements) {
       if (statement.trim()) {
-        await pool.query(statement);
-        console.log('Executed:', statement.substring(0, 50) + '...');
+        try {
+          await pool.query(statement);
+          console.log('Executed:', statement.substring(0, 50) + '...');
+        } catch (error) {
+          // Skip duplicate index errors
+          if (error.code === 'ER_DUP_KEYNAME') {
+            console.log('Index already exists, skipping:', statement.substring(0, 50) + '...');
+          } else {
+            throw error;
+          }
+        }
       }
     }
     

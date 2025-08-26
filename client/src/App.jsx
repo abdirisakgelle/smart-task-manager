@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
+import RoleGuard from "@/components/guards/RoleGuard";
 
 // home pages  & dashboard
 //import Dashboard from "./pages/dashboard";
@@ -98,7 +99,21 @@ const TicketAnalyticsPage = lazy(() => import("./pages/ticket-analytics"));
 const ContentAnalyticsPage = lazy(() => import("./pages/content-analytics"));
 const EmployeeAnalyticsPage = lazy(() => import("./pages/employee-analytics"));
 const UsersPage = lazy(() => import("./pages/users"));
+const PermissionManagementPage = lazy(() => import("./pages/users/PermissionManagement"));
+const EmployeeManagementPage = lazy(() => import("./pages/users/EmployeeManagement"));
+const TestAPIPage = lazy(() => import("./pages/users/TestAPI"));
+const SimpleTestPage = lazy(() => import("./pages/users/SimpleTest"));
+const PermissionDebugPage = lazy(() => import("./pages/users/PermissionDebug"));
+const TestPermissionsPage = lazy(() => import("./pages/users/TestPermissions"));
+const MenuTestPage = lazy(() => import("./pages/users/MenuTest"));
 const TasksPage = lazy(() => import("./pages/tasks"));
+const MyTasksPage = lazy(() => import("./pages/tasks/MyTasks"));
+const TasksManagementPage = lazy(() => import("./pages/tasks/TasksManagement"));
+
+const AdminDashboard = lazy(() => import("./pages/dashboard/AdminDashboard"));
+const UserDashboard = lazy(() => import("./pages/dashboard/UserDashboard"));
+const AgentDashboard = lazy(() => import("./pages/dashboard/AgentDashboard"));
+const ContentDashboard = lazy(() => import("./pages/dashboard/ContentDashboard"));
 
 function App() {
   return (
@@ -108,12 +123,36 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="dashboard/admin" element={<AdminDashboard />} />
+            {/* CEO dashboard removed; CEO role falls back to Admin Dashboard */}
+            {/* Manager dashboard removed. Managers will use Support (Agent) dashboard. */}
+            <Route path="dashboard/agent" element={
+              <RoleGuard allowedRoles={['agent']}>
+                <AgentDashboard />
+              </RoleGuard>
+            } />
+            <Route path="dashboard/content" element={
+              <RoleGuard allowedRoles={['media']}>
+                <ContentDashboard />
+              </RoleGuard>
+            } />
+            {/* Supervisor and Follow-up dashboards removed. These roles use Support (Agent) dashboard. */}
+            <Route path="dashboard/user" element={<UserDashboard />} />
             <Route path="ecommerce" element={<Ecommerce />} />
             <Route path="crm" element={<CrmPage />} />
 
             {/* Administration pages */}
             <Route path="users" element={<UsersPage />} />
+            <Route path="permissions" element={<PermissionManagementPage />} />
+            <Route path="permission-debug" element={<PermissionDebugPage />} />
+            <Route path="test-permissions" element={<TestPermissionsPage />} />
+            <Route path="menu-test" element={<MenuTestPage />} />
+            <Route path="employee-management" element={<EmployeeManagementPage />} />
+            <Route path="test-api" element={<TestAPIPage />} />
+            <Route path="simple-test" element={<SimpleTestPage />} />
             <Route path="tasks" element={<TasksPage />} />
+            <Route path="my-tasks" element={<MyTasksPage />} />
+            <Route path="tasks-management" element={<TasksManagementPage />} />
 
             {/* App pages */}
             <Route path="todos" element={<TodoPage />} />

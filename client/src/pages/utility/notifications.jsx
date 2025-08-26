@@ -131,7 +131,7 @@ const NotificationPage = () => {
   if (error) {
     return (
       <div className="text-center py-8">
-        <Icon icon="heroicons:exclamation-triangle" className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <Icon icon="heroicons:exclamation-triangle-20-solid" className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Error Loading Notifications</h3>
         <p className="text-gray-600 dark:text-gray-400">{error.message}</p>
         <Button onClick={refetch} className="mt-4">

@@ -14,7 +14,7 @@ const Bar = ({ value, className, showValue, striped, animate, active }) => {
       style={{ width: `${value}%` }}
     >
       {showValue && (
-        <span className="text-[10px] text-white font-bold">{value + "%"}</span>
+        <span className="text-xs text-white font-bold">{value + "%"}</span>
       )}
     </div>
   );

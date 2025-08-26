@@ -11,7 +11,7 @@ async function testAuth() {
     const createUserResponse = await axios.post(`${BASE_URL}/users`, {
       username: 'testuser',
       password: 'testpass123',
-      role: 'user'
+      role: 'agent'
     });
     console.log('✅ User created successfully:', createUserResponse.data);
 

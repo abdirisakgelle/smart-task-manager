@@ -4,18 +4,28 @@ export const menuItems = [
     title: "Main",
   },
   {
-    title: "Dashboard",
+    title: "Admin Dashboard",
     icon: "SquaresFour",
-    link: "/dashboard",
+    link: "/dashboard/admin",
+    page_name: "admin_dashboard",
   },
   {
-    isHeadr: true,
-    title: "Administration",
+    title: "Agent Dashboard",
+    icon: "User",
+    link: "/dashboard/agent",
+    page_name: "agent_dashboard",
   },
   {
-    title: "Users Management",
-    icon: "UsersThree",
-    link: "/users",
+    title: "Content Dashboard",
+    icon: "Folders",
+    link: "/dashboard/content",
+    page_name: "content_dashboard",
+  },
+  {
+    title: "User Dashboard",
+    icon: "UserCircle",
+    link: "/dashboard/user",
+    page_name: "user_dashboard",
   },
   {
     isHeadr: true,
@@ -25,16 +35,47 @@ export const menuItems = [
     title: "New Tickets",
     icon: "Ticket",
     link: "/tickets",
+    page_name: "tickets",
   },
   {
     title: "Follow-Ups",
     icon: "ArrowClockwise",
     link: "/follow-ups",
+    page_name: "follow_ups",
   },
   {
     title: "Supervisor Reviews",
     icon: "ClipboardText",
     link: "/supervisor-reviews",
+    page_name: "supervisor_reviews",
+  },
+  {
+    isHeadr: true,
+    title: "Productivity",
+  },
+  {
+    title: "My Tasks",
+    icon: "CheckSquare",
+    link: "/my-tasks",
+    page_name: "my_tasks",
+  },
+  {
+    title: "Tasks Management",
+    icon: "ListChecks",
+    link: "/tasks-management",
+    page_name: "tasks",
+  },
+  {
+    title: "Calendar",
+    icon: "CalendarBlank",
+    link: "/calendar",
+    page_name: "calendar",
+  },
+  {
+    title: "Kanban Boards",
+    icon: "Columns",
+    link: "/boards",
+    page_name: "boards",
   },
   {
     isHeadr: true,
@@ -44,26 +85,47 @@ export const menuItems = [
     title: "New Creative Ideas",
     icon: "LightbulbFilament",
     link: "/new-creative-ideas",
+    page_name: "ideas",
   },
   {
     title: "Content Management",
     icon: "Folders",
     link: "/content-management",
-  },
-  {
-    title: "Calendar",
-    icon: "CalendarBlank",
-    link: "/calendar",
+    page_name: "content",
   },
   {
     title: "Production Workflow",
     icon: "ArrowsLeftRight",
     link: "/production-workflow",
+    page_name: "production",
   },
   {
     title: "Social Media",
     icon: "ShareNetwork",
     link: "/social-media",
+    page_name: "social_media",
+  },
+  {
+    isHeadr: true,
+    title: "Administration",
+  },
+  {
+    title: "Users Management",
+    icon: "UsersThree",
+    link: "/users",
+    page_name: "users",
+  },
+  {
+    title: "Permission Management",
+    icon: "ShieldCheck",
+    link: "/permissions",
+    page_name: "permissions",
+  },
+  {
+    title: "Employee Management",
+    icon: "UserPlus",
+    link: "/employee-management",
+    page_name: "employees",
   },
   {
     isHeadr: true,
@@ -73,25 +135,39 @@ export const menuItems = [
     title: "Ticket Analytics",
     icon: "ChartLineUp",
     link: "/ticket-analytics",
+    page_name: "ticket_analytics", // Independent analytics permission
   },
   {
     title: "Content Analytics",
-    icon: "ChartBar",
+    icon: "ChartPieSlice",
     link: "/content-analytics",
+    page_name: "content_analytics", // Independent analytics permission
   },
   {
     title: "Employee Analytics",
-    icon: "ChartDonut",
+    icon: "ChartBar",
     link: "/employee-analytics",
+    page_name: "employee_analytics", // Independent analytics permission
   },
   {
     isHeadr: true,
-    title: "Settings",
+    title: "System",
   },
   {
-    title: "Tasks",
-    icon: "CheckSquare",
-    link: "/tasks",
+    title: "Notifications",
+    icon: "Bell",
+    link: "/notifications",
+    page_name: "notifications",
+  },
+  {
+    isHeadr: true,
+    title: "Personal",
+  },
+  {
+    title: "Profile",
+    icon: "User",
+    link: "/profile",
+    page_name: "profile",
   },
 ];
 

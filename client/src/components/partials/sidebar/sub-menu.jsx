@@ -3,9 +3,38 @@ import { Collapse } from "react-collapse";
 import { NavLink } from "react-router-dom";
 import Icon from "@/components/ui/Icon";
 import Multilevel from "./multi-lavel";
+import usePermissions from "@/hooks/usePermissions";
+import { useSelector } from "react-redux";
 
 const Submenu = ({ activeSubmenu, item, i }) => {
   const [activeMultiMenu, setMultiMenu] = useState(null);
+  const { hasPermission } = usePermissions();
+  const user = useSelector((state) => state.auth.user);
+
+  // Map menu links to permission page names
+  const getPermissionName = (link) => {
+    const linkName = link.replace('/', '');
+    const permissionMap = {
+      'dashboard': 'dashboard',
+      'users': 'users',
+      'employee-management': 'employees',
+      'tickets': 'tickets',
+      'follow-ups': 'follow_ups',
+      'supervisor-reviews': 'supervisor_reviews',
+      'new-creative-ideas': 'ideas',
+      'content-management': 'content',
+      'calendar': 'calendar',
+      'production-workflow': 'production',
+      'social-media': 'social_media',
+      'ticket-analytics': 'tickets',
+      'content-analytics': 'content',
+      'employee-analytics': 'employees',
+      'permissions': 'users',
+      'tasks': 'tasks',
+      'my-tasks': 'tasks',
+    };
+    return permissionMap[linkName] || linkName;
+  };
 
   const toggleMultiMenu = (j) => {
     if (activeMultiMenu === j) {
@@ -36,8 +65,24 @@ const Submenu = ({ activeSubmenu, item, i }) => {
   return (
     <Collapse isOpened={activeSubmenu === i}>
       <ul className="sub-menu space-y-1 pl-12 pr-6">
-        {item.child?.map((subItem, j) => (
-          <li key={j} className="relative first:pt-3 last:pb-3">
+        {item.child?.map((subItem, j) => {
+          // Skip submenu items that user doesn't have permission for
+          if (subItem.childlink && !hasPermission(getPermissionName(subItem.childlink))) {
+            return null;
+          }
+          
+          // Skip submenu items with specific role restrictions
+          if (subItem.roles && !subItem.roles.includes(user?.role)) {
+            return null;
+          }
+          
+          // Skip section headers with role restrictions
+          if (subItem.isHeadr && subItem.roles && !subItem.roles.includes(user?.role)) {
+            return null;
+          }
+          
+          return (
+            <li key={j} className="relative first:pt-3 last:pb-3">
             {subItem?.submenu ? (
               <div>
                 <div
@@ -80,9 +125,10 @@ const Submenu = ({ activeSubmenu, item, i }) => {
                   </div>
                 )}
               </LockLink>
-            )}
-          </li>
-        ))}
+                          )}
+            </li>
+          );
+        })}
       </ul>
     </Collapse>
   );

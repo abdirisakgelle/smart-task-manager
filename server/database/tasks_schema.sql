@@ -7,7 +7,12 @@ CREATE TABLE IF NOT EXISTS tasks (
   created_by INT NOT NULL,          -- FK to users.user_id
   status ENUM('Not Started', 'In Progress', 'Completed') DEFAULT 'Not Started',
   priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium',
-  due_date DATE,
+  due_date DATETIME,
+  extension_requested BOOLEAN DEFAULT FALSE,
+  extension_reason TEXT,
+  requested_due_date DATETIME,
+  extension_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT NULL,
+  completion_comment TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (assigned_to) REFERENCES employees(employee_id) ON DELETE CASCADE,

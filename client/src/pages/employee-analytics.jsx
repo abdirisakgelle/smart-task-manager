@@ -4,7 +4,7 @@ import Card from '@/components/ui/Card';
 const EmployeeAnalytics = () => {
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 text-[#D2232A]">Employee Analytics</h1>
+      <h1 className="text-heading-2 mb-6 text-red-600">Employee Analytics</h1>
       
       <Card>
         <div className="p-6">

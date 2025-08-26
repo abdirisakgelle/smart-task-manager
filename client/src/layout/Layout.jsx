@@ -18,6 +18,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { logSidebarState } from "@/utils/sidebarDiagnostic";
 import { logDeepDebug } from "@/utils/deepDebugSidebar";
 import { useNavigationFix } from "@/hooks/useNavigationFix";
+import { initializePermissions } from "@/utils/permissionUtils";
+
 const Layout = () => {
   const { width, breakpoints } = useWidth();
   const [collapsed] = useSidebar();
@@ -30,6 +32,16 @@ const Layout = () => {
       navigate("/auth/login");
     }
   }, [isAuth, navigate]);
+
+  // Initialize permissions when user is authenticated
+  useEffect(() => {
+    if (isAuth && user && user.user_id) {
+      // Initialize permissions for already logged-in users
+      initializePermissions(user.user_id).catch(error => {
+        console.error('Error initializing permissions on layout mount:', error);
+      });
+    }
+  }, [isAuth, user]);
 
   // Run diagnostic on component mount and when layout state changes
   useEffect(() => {

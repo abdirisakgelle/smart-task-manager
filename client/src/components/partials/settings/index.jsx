@@ -39,10 +39,10 @@ const Settings = () => {
         <SimpleBar className="px-6 h-full">
           <header className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 -mx-5 px-6 py-[15px] mb-6">
             <div>
-              <span className="block text-xl text-gray-900 font-medium dark:text-[#eee]">
+              <span className="block text-xl text-gray-900 font-medium dark:text-gray-100">
                 Theme customizer
               </span>
-              <span className="block text-sm font-light text-[#68768A] dark:text-[#eee]">
+              <span className="block text-sm font-light text-gray-500 dark:text-gray-300">
                 Customize & Preview in Real Time
               </span>
             </div>

@@ -53,7 +53,7 @@ const Sidebar = () => {
             </div>
             <div>
               <h5 className="text-sm font-medium text-white">{user?.name || user?.username}</h5>
-              <p className="text-xs text-white/50">{user?.department || "Department not assigned"}</p>
+              <p className="text-xs text-white/50">{user?.department || user?.departmentName || "Department not assigned"}</p>
             </div>
           </div>
         </div>

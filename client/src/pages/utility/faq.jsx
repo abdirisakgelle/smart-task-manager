@@ -105,7 +105,7 @@ const FaqPage = () => {
                   <Tab key={i} as={Fragment}>
                     {({ selected }) => (
                       <button
-                        className={`focus:ring-0 focus:outline-none  space-x-2 text-sm flex items-center w-full transition duration-150 px-3 py-2 rounded-[6px] rtl:space-x-reverse
+                        className={`focus:ring-0 focus:outline-none  space-x-2 text-sm flex items-center w-full transition duration-150 px-3 py-2 rounded-lg rtl:space-x-reverse
                             ${
                               selected
                                 ? "text-indigo-500"

@@ -75,7 +75,7 @@ const Header = ({ className = "custom-class", title }) => {
                   className="cursor-pointer text-gray-900 dark:text-white text-2xl"
                   onClick={handleOpenMobileMenu}
                 >
-                  <Icon icon="heroicons-outline:menu-alt-3" />
+                  <Icon icon="heroicons:bars-2" />
                 </div>
               )}
             </div>
@@ -97,7 +97,7 @@ const Header = ({ className = "custom-class", title }) => {
               className="cursor-pointer text-gray-900 dark:text-white text-2xl xl:hidden  block"
               onClick={handleOpenMobileMenu}
             >
-              <Icon icon="heroicons-outline:menu-alt-3" />
+              <Icon icon="heroicons:bars-2" />
             </div>
           </div>
         </div>

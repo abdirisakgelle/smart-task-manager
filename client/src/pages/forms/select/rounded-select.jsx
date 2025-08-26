@@ -16,7 +16,7 @@ const RoundedSelect = () => {
         },
       ];
     return (
-        <Select options={options} className=" rounded-[99px]" />
+        <Select options={options} className=" rounded-full" />
     );
 };
 

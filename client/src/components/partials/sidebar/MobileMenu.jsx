@@ -57,7 +57,7 @@ const MobileMenu = ({ className = "custom-class" }) => {
             onClick={() => setMobileMenu(!mobileMenu)}
             className="cursor-pointer text-gray-900 dark:text-white text-2xl"
           >
-            <Icon icon="heroicons:x-mark" />
+                          <Icon icon="heroicons:x-mark-20-solid" />
           </button>
         </div>
 

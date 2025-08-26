@@ -94,7 +94,7 @@ const Modal = ({
                           <h2 className="capitalize leading-6 tracking-wider font-medium text-base ">
                             {title}
                           </h2>
-                          <button onClick={closeModal} className="text-[22px]">
+                          <button onClick={closeModal} className="text-xl">
                             <Icon icon="heroicons-outline:x" />
                           </button>
                         </div>
@@ -163,7 +163,7 @@ const Modal = ({
                         <h2 className="capitalize leading-6 tracking-wider font-medium text-base ">
                           {title}
                         </h2>
-                        <button onClick={onClose} className="text-[22px]">
+                        <button onClick={onClose} className="text-xl">
                           <Icon icon="heroicons-outline:x" />
                         </button>
                       </div>

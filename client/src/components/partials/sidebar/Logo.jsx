@@ -12,7 +12,7 @@ const SidebarLogo = ({ menuHover }) => {
           src={NasiyeLogo}
           alt="Nasiye Logo"
           className={`transition-all duration-200 max-h-none ${
-            menuHover ? 'w-[240px] px-2' : 'w-[50px]'
+            menuHover ? 'w-[280px] px-3' : 'w-[90px]'
           }`}
           style={{ 
             objectFit: 'contain',

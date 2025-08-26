@@ -59,11 +59,11 @@ const Recenttimeline = () => {
             key={i}
           >
             <div>
-              <div className="w-8 h-8 rounded-[100%]">
+              <div className="w-8 h-8 rounded-full">
                 <img
                   src={item.img}
                   alt=""
-                  className="w-full h-full rounded-[100%] object-cover"
+                  className="w-full h-full rounded-full object-cover"
                 />
               </div>
             </div>

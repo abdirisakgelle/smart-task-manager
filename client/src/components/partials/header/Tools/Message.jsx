@@ -120,7 +120,7 @@ const Message = () => {
                       <div className="text-gray-800 dark:text-gray-300 text-sm font-medium mb-1">
                         {item.title}
                       </div>
-                      <div className="text-sm hover:text-[#68768A] text-gray-600 dark:text-gray-300 mb-1 w-full truncate">
+                      <div className="text-sm hover:text-gray-500 text-gray-600 dark:text-gray-300 mb-1 w-full truncate">
                         {item.desc}
                       </div>
                       <div className="text-gray-400 dark:text-gray-400 text-xs font-light">
@@ -129,7 +129,7 @@ const Message = () => {
                     </div>
                     {item.hasnotifaction && (
                       <div className="flex-0  self-center">
-                        <span className="h-3 w-3 bg-indigo-500 border border-white rounded-full text-[10px] flex items-center justify-center text-white"></span>
+                        <span className="h-3 w-3 bg-indigo-500 border border-white rounded-full text-xs flex items-center justify-center text-white"></span>
                       </div>
                     )}
                   </div>

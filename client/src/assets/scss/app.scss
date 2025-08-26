@@ -103,3 +103,415 @@ $brand-black: #181818;
 }
 @layer utilities {
 }
+
+/* Standardized Design System Colors */
+:root {
+  /* Primary Brand Colors */
+  --primary-red: #D2232A;
+  --primary-red-light: #e53e3e;
+  --primary-red-dark: #b71c22;
+  
+  /* Neutral Colors */
+  --neutral-gray-50: #f9fafb;
+  --neutral-gray-100: #f3f4f6;
+  --neutral-gray-200: #e5e7eb;
+  --neutral-gray-300: #d1d5db;
+  --neutral-gray-400: #9ca3af;
+  --neutral-gray-500: #6b7280;
+  --neutral-gray-600: #4b5563;
+  --neutral-gray-700: #374151;
+  --neutral-gray-800: #1f2937;
+  --neutral-gray-900: #111827;
+  
+  /* Semantic Colors */
+  --success-green: #10b981;
+  --success-green-light: #34d399;
+  --warning-yellow: #f59e0b;
+  --warning-yellow-light: #fbbf24;
+  --error-red: #ef4444;
+  --error-red-light: #f87171;
+  --info-blue: #3b82f6;
+  --info-blue-light: #60a5fa;
+  
+  /* Accent Colors */
+  --accent-purple: #8b5cf6;
+  --accent-purple-light: #a78bfa;
+  --accent-orange: #f97316;
+  --accent-orange-light: #fb923c;
+  --accent-pink: #ec4899;
+  --accent-pink-light: #f472b6;
+  --accent-teal: #14b8a6;
+  --accent-teal-light: #2dd4bf;
+  --accent-indigo: #6366f1;
+  --accent-indigo-light: #818cf8;
+  --accent-cyan: #06b6d4;
+  --accent-cyan-light: #22d3ee;
+  --accent-emerald: #10b981;
+  --accent-emerald-light: #34d399;
+  --accent-lime: #84cc16;
+  --accent-lime-light: #a3e635;
+  --accent-amber: #f59e0b;
+  --accent-amber-light: #fbbf24;
+  --accent-violet: #8b5cf6;
+  --accent-violet-light: #a78bfa;
+  --accent-rose: #f43f5e;
+  --accent-rose-light: #fb7185;
+  --accent-slate: #64748b;
+  --accent-slate-light: #94a3b8;
+}
+
+/* Standardized Typography */
+.text-heading-1 {
+  @apply text-3xl font-bold text-gray-900 dark:text-gray-100;
+}
+
+.text-heading-2 {
+  @apply text-2xl font-bold text-gray-900 dark:text-gray-100;
+}
+
+.text-heading-3 {
+  @apply text-xl font-semibold text-gray-900 dark:text-gray-100;
+}
+
+.text-heading-4 {
+  @apply text-lg font-semibold text-gray-900 dark:text-gray-100;
+}
+
+.text-body-large {
+  @apply text-lg font-medium text-gray-700 dark:text-gray-300;
+}
+
+.text-body-medium {
+  @apply text-base font-medium text-gray-700 dark:text-gray-300;
+}
+
+.text-body-small {
+  @apply text-sm font-medium text-gray-600 dark:text-gray-400;
+}
+
+.text-caption {
+  @apply text-xs font-medium text-gray-500 dark:text-gray-500;
+}
+
+/* Standardized Component Styles */
+.card-standard {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-card border border-gray-200 dark:border-gray-700;
+}
+
+.card-header-standard {
+  @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700;
+}
+
+.card-body-standard {
+  @apply px-6 py-4;
+}
+
+.card-footer-standard {
+  @apply px-6 py-4 border-t border-gray-200 dark:border-gray-700;
+}
+
+/* Standardized Button Styles */
+.btn-standard {
+  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary-standard {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+.btn-secondary-standard {
+  @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600;
+}
+
+.btn-success-standard {
+  @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+}
+
+.btn-warning-standard {
+  @apply bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500;
+}
+
+.btn-danger-standard {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+/* Standardized Badge Styles */
+.badge-standard {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+}
+
+.badge-danger {
+  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+}
+
+/* Standardized Spacing */
+.space-standard {
+  @apply space-y-6;
+}
+
+.space-compact {
+  @apply space-y-4;
+}
+
+.space-relaxed {
+  @apply space-y-8;
+}
+
+/* Standardized Icon Sizes */
+.icon-xs {
+  @apply w-3 h-3;
+}
+
+.icon-sm {
+  @apply w-4 h-4;
+}
+
+.icon-md {
+  @apply w-5 h-5;
+}
+
+.icon-lg {
+  @apply w-6 h-6;
+}
+
+.icon-xl {
+  @apply w-8 h-8;
+}
+
+.icon-2xl {
+  @apply w-10 h-10;
+}
+
+/* Line clamp utilities for task descriptions */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Professional Task Card Styling */
+.task-card {
+  transition: all 0.2s ease-in-out;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.task-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Professional Badge Styling */
+.badge-professional {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.badge-status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.badge-status-in-progress {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.badge-status-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.badge-status-cancelled {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.badge-priority-high {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.badge-priority-medium {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.badge-priority-low {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+/* Professional Button Styling */
+.btn-professional {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-professional-primary {
+  background-color: #475569;
+  color: white;
+}
+
+.btn-professional-primary:hover {
+  background-color: #334155;
+}
+
+.btn-professional-success {
+  background-color: #10b981;
+  color: white;
+}
+
+.btn-professional-success:hover {
+  background-color: #059669;
+}
+
+.btn-professional-info {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-professional-info:hover {
+  background-color: #2563eb;
+}
+
+/* Professional Filter Styling */
+.filter-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid;
+  cursor: pointer;
+}
+
+.filter-button-active {
+  background-color: #475569;
+  color: white;
+  border-color: #475569;
+}
+
+.filter-button-inactive {
+  background-color: white;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.filter-button-inactive:hover {
+  background-color: #f8fafc;
+}
+
+/* Responsive grid improvements */
+@media (max-width: 640px) {
+  .task-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .task-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .task-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Professional Loading States */
+.loading-professional {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #475569;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Professional Empty States */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-description {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}

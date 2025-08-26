@@ -88,7 +88,7 @@ const Customer = () => {
                 alt=""
                 className="w-full h-full rounded-full"
               />
-              <span className="h-[27px] w-[27px] absolute right-0 bottom-0 rounded-full bg-[#FFC155] border border-white flex flex-col items-center justify-center text-white text-xs font-medium">
+              <span className="h-[27px] w-[27px] absolute right-0 bottom-0 rounded-full bg-yellow-500 border border-white flex flex-col items-center justify-center text-white text-xs font-medium">
                 {item.number}
               </span>
             </div>
@@ -129,7 +129,7 @@ const Customer = () => {
                 alt=""
                 className="w-full h-full rounded-full"
               />
-              <span className="h-4 w-4 absolute right-0 bottom-0 rounded-full bg-[#FFC155] border border-white flex flex-col items-center justify-center text-white text-[10px] font-medium">
+              <span className="h-4 w-4 absolute right-0 bottom-0 rounded-full bg-yellow-500 border border-white flex flex-col items-center justify-center text-white text-[10px] font-medium">
                 {item.number}
               </span>
             </div>

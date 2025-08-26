@@ -19,11 +19,11 @@ const COLUMNS = [
       return (
         <span className="flex items-center">
           <div className="flex-none">
-            <div className="w-8 h-8 rounded-[100%] ltr:mr-3 rtl:ml-3">
+            <div className="w-8 h-8 rounded-full ltr:mr-3 rtl:ml-3">
               <img
                 src={row?.cell?.value}
                 alt=""
-                className="w-full h-full rounded-[100%] object-cover"
+                className="w-full h-full rounded-full object-cover"
               />
             </div>
           </div>

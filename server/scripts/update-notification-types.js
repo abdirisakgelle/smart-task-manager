@@ -25,7 +25,7 @@ async function updateNotificationTypes() {
     const [columns] = await pool.query(`
       SELECT COLUMN_TYPE 
       FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = 'smart_task_manager' 
+      WHERE TABLE_SCHEMA = 'nasiye_tasks' 
       AND TABLE_NAME = 'notifications' 
       AND COLUMN_NAME = 'type'
     `);
