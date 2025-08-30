@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Get all boards with their tasks
-exports.getAllBoards = async (req, res) => {
+export const getAllBoards = async (req, res) => {
   try {
     console.log('🎯 Frontend boards request received');
     // Get all boards
@@ -25,7 +25,7 @@ exports.getAllBoards = async (req, res) => {
 };
 
 // Create a new board
-exports.createBoard = async (req, res) => {
+export const createBoard = async (req, res) => {
   const { title } = req.body;
   if (!title) {
     return res.status(400).json({ error: 'Title is required' });
@@ -50,7 +50,7 @@ exports.createBoard = async (req, res) => {
 };
 
 // Update a board
-exports.updateBoard = async (req, res) => {
+export const updateBoard = async (req, res) => {
   const { boardId } = req.params;
   const { title } = req.body;
   
@@ -75,7 +75,7 @@ exports.updateBoard = async (req, res) => {
 };
 
 // Delete a board
-exports.deleteBoard = async (req, res) => {
+export const deleteBoard = async (req, res) => {
   const { boardId } = req.params;
   
   try {
@@ -96,7 +96,7 @@ exports.deleteBoard = async (req, res) => {
 };
 
 // Create a new task
-exports.createTask = async (req, res) => {
+export const createTask = async (req, res) => {
   const { boardId } = req.params;
   const { title, priority, startDate, endDate, assign } = req.body;
   
@@ -150,7 +150,7 @@ exports.createTask = async (req, res) => {
 };
 
 // Update a task
-exports.updateTask = async (req, res) => {
+export const updateTask = async (req, res) => {
   const { boardId, taskId } = req.params;
   const { title, priority, startDate, endDate, assign } = req.body;
   
@@ -188,7 +188,7 @@ exports.updateTask = async (req, res) => {
 };
 
 // Delete a task
-exports.deleteTask = async (req, res) => {
+export const deleteTask = async (req, res) => {
   const { boardId, taskId } = req.params;
   
   try {

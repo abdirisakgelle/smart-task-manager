@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Create new follow-up
-exports.createFollowUp = async (req, res) => {
+export const createFollowUp = async (req, res) => {
   const { ticket_id, follow_up_agent_id, follow_up_date, issue_solved, customer_location, satisfied, repeated_issue, follow_up_notes } = req.body;
   if (!ticket_id || !follow_up_agent_id || !follow_up_date || issue_solved === undefined) {
     return res.status(400).json({ error: 'ticket_id, follow_up_agent_id, follow_up_date, and issue_solved are required.' });
@@ -53,7 +53,7 @@ exports.createFollowUp = async (req, res) => {
 };
 
 // Get all follow-ups
-exports.getAllFollowUps = async (req, res) => {
+export const getAllFollowUps = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups ORDER BY follow_up_date DESC'
@@ -65,7 +65,7 @@ exports.getAllFollowUps = async (req, res) => {
 };
 
 // Get follow-up by ID
-exports.getFollowUpById = async (req, res) => {
+export const getFollowUpById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups WHERE follow_up_id = ?',
@@ -79,7 +79,7 @@ exports.getFollowUpById = async (req, res) => {
 };
 
 // Update follow-up by ID
-exports.updateFollowUp = async (req, res) => {
+export const updateFollowUp = async (req, res) => {
   const { ticket_id, follow_up_agent_id, follow_up_date, issue_solved, customer_location, feedback_rating, satisfied, repeated_issue, resolved_after_follow_up, resolution_status, follow_up_notes } = req.body;
   if (!ticket_id || !follow_up_agent_id || !follow_up_date || issue_solved === undefined) {
     return res.status(400).json({ error: 'ticket_id, follow_up_agent_id, follow_up_date, and issue_solved are required.' });
@@ -110,7 +110,7 @@ exports.updateFollowUp = async (req, res) => {
 };
 
 // Delete follow-up by ID
-exports.deleteFollowUp = async (req, res) => {
+export const deleteFollowUp = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM follow_ups WHERE follow_up_id = ?',
@@ -124,7 +124,7 @@ exports.deleteFollowUp = async (req, res) => {
 };
 
 // Filtered endpoints
-exports.getFollowUpsByAgent = async (req, res) => {
+export const getFollowUpsByAgent = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups WHERE follow_up_agent_id = ? ORDER BY follow_up_date DESC',
@@ -136,7 +136,7 @@ exports.getFollowUpsByAgent = async (req, res) => {
   }
 };
 
-exports.getFollowUpsByTicket = async (req, res) => {
+export const getFollowUpsByTicket = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups WHERE ticket_id = ? ORDER BY follow_up_date DESC',
@@ -148,7 +148,7 @@ exports.getFollowUpsByTicket = async (req, res) => {
   }
 };
 
-exports.getFollowUpsByResolutionStatus = async (req, res) => {
+export const getFollowUpsByResolutionStatus = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups WHERE resolution_status = ? ORDER BY follow_up_date DESC',
@@ -160,7 +160,7 @@ exports.getFollowUpsByResolutionStatus = async (req, res) => {
   }
 };
 
-exports.getFollowUpsBySatisfied = async (req, res) => {
+export const getFollowUpsBySatisfied = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups WHERE satisfied = ? ORDER BY follow_up_date DESC',
@@ -172,7 +172,7 @@ exports.getFollowUpsBySatisfied = async (req, res) => {
   }
 };
 
-exports.getFollowUpsByRepeatedIssue = async (req, res) => {
+export const getFollowUpsByRepeatedIssue = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups WHERE repeated_issue = ? ORDER BY follow_up_date DESC',
@@ -184,7 +184,7 @@ exports.getFollowUpsByRepeatedIssue = async (req, res) => {
   }
 };
 
-exports.getFollowUpsByResolvedAfterFollowUp = async (req, res) => {
+export const getFollowUpsByResolvedAfterFollowUp = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM follow_ups WHERE resolved_after_follow_up = ? ORDER BY follow_up_date DESC',
@@ -197,7 +197,7 @@ exports.getFollowUpsByResolvedAfterFollowUp = async (req, res) => {
 };
 
 // Get eligible tickets for follow-up (last 7 days, not in follow_ups, with optional supervisor review)
-exports.getEligibleFollowUps = async (req, res) => {
+export const getEligibleFollowUps = async (req, res) => {
   try {
     // Optional: support for custom date range via query params
     const days = req.query.days ? parseInt(req.query.days, 10) : 7;
@@ -241,7 +241,7 @@ exports.getEligibleFollowUps = async (req, res) => {
 };
 
 // Get reopened tickets for agents (tickets with status 'Reopened')
-exports.getReopenedTickets = async (req, res) => {
+export const getReopenedTickets = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -259,7 +259,7 @@ exports.getReopenedTickets = async (req, res) => {
 };
 
 // Get reopened tickets by agent
-exports.getReopenedTicketsByAgent = async (req, res) => {
+export const getReopenedTicketsByAgent = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 

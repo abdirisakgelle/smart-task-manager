@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Internal helper function to create notifications
-exports.createNotificationInternal = async (notificationData) => {
+export const createNotificationInternal = async (notificationData) => {
   const { user_id, title, message, type, related_id, related_type } = notificationData;
   if (!user_id || !title || !message) {
     throw new Error('user_id, title, and message are required');
@@ -26,7 +26,7 @@ exports.createNotificationInternal = async (notificationData) => {
 };
 
 // Create a new notification (API endpoint)
-exports.createNotification = async (req, res) => {
+export const createNotification = async (req, res) => {
   try {
     const notification = await createNotificationInternal(req.body);
     res.status(201).json(notification);
@@ -36,7 +36,7 @@ exports.createNotification = async (req, res) => {
 };
 
 // Get all notifications for a user
-exports.getUserNotifications = async (req, res) => {
+export const getUserNotifications = async (req, res) => {
   const { user_id } = req.params;
   const { limit = 50, offset = 0, unread_only = false } = req.query;
   
@@ -59,7 +59,7 @@ exports.getUserNotifications = async (req, res) => {
 };
 
 // Get unread notification count for a user
-exports.getUnreadCount = async (req, res) => {
+export const getUnreadCount = async (req, res) => {
   const { user_id } = req.params;
   
   try {
@@ -74,7 +74,7 @@ exports.getUnreadCount = async (req, res) => {
 };
 
 // Mark notification as read
-exports.markAsRead = async (req, res) => {
+export const markAsRead = async (req, res) => {
   const { notification_id } = req.params;
   
   try {
@@ -94,7 +94,7 @@ exports.markAsRead = async (req, res) => {
 };
 
 // Mark all notifications as read for a user
-exports.markAllAsRead = async (req, res) => {
+export const markAllAsRead = async (req, res) => {
   const { user_id } = req.params;
   
   try {
@@ -113,7 +113,7 @@ exports.markAllAsRead = async (req, res) => {
 };
 
 // Delete a notification
-exports.deleteNotification = async (req, res) => {
+export const deleteNotification = async (req, res) => {
   const { notification_id } = req.params;
   
   try {
@@ -133,7 +133,7 @@ exports.deleteNotification = async (req, res) => {
 };
 
 // Manual cleanup endpoint
-exports.manualCleanup = async (req, res) => {
+export const manualCleanup = async (req, res) => {
   try {
     const { cleanupNotifications } = require('../scripts/cleanup-notifications');
     await cleanupNotifications();
@@ -148,7 +148,7 @@ exports.manualCleanup = async (req, res) => {
 };
 
 // Create task assignment notification
-exports.createTaskAssignmentNotification = async (taskData, assignedUsers) => {
+export const createTaskAssignmentNotification = async (taskData, assignedUsers) => {
   try {
     const notifications = [];
     
@@ -189,7 +189,7 @@ exports.createTaskAssignmentNotification = async (taskData, assignedUsers) => {
 };
 
 // Get notifications for current user (from JWT token)
-exports.getCurrentUserNotifications = async (req, res) => {
+export const getCurrentUserNotifications = async (req, res) => {
   const user_id = req.user.user_id;
   const { limit = 50, offset = 0, unread_only = false } = req.query;
   
@@ -212,7 +212,7 @@ exports.getCurrentUserNotifications = async (req, res) => {
 };
 
 // Get unread count for current user
-exports.getCurrentUserUnreadCount = async (req, res) => {
+export const getCurrentUserUnreadCount = async (req, res) => {
   const user_id = req.user.user_id;
   
   try {
@@ -227,7 +227,7 @@ exports.getCurrentUserUnreadCount = async (req, res) => {
 };
 
 // Create task assignment notifications (API endpoint)
-exports.createTaskAssignmentNotifications = async (req, res) => {
+export const createTaskAssignmentNotifications = async (req, res) => {
   const { taskData, assignedUsers } = req.body;
   
   if (!taskData || !assignedUsers || !Array.isArray(assignedUsers)) {

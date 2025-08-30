@@ -114,6 +114,28 @@ app.get('/', (req, res) => {
   res.send('Hello from backend!');
 });
 
+// Health check route to verify database connectivity
+app.get('/api/health', async (req, res) => {
+  try {
+    const pool = require('./config/db');
+    const [rows] = await pool.query("SELECT 1 AS ok");
+    res.json({ 
+      ok: true, 
+      db: "up", 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (err) {
+    console.error('Health check failed:', err);
+    res.status(500).json({ 
+      ok: false, 
+      error: err.message,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  }
+});
+
 // Import and run the auto-insert scheduler
 const { autoInsertTicketsToReviews } = require('./scripts/autoInsertScheduler');
 

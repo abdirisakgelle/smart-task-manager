@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Get all tasks (with role-based filtering)
 const getAllTasks = async (req, res) => {
@@ -891,7 +891,7 @@ const getTeamMembers = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   getAllTasks,
   getTaskById,
   createTask,

@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Get all sections with department info
-exports.getAllSections = async (req, res) => {
+export const getAllSections = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT s.section_id, s.name, s.department_id, d.name as department_name
@@ -16,7 +16,7 @@ exports.getAllSections = async (req, res) => {
 };
 
 // Get sections by department
-exports.getSectionsByDepartment = async (req, res) => {
+export const getSectionsByDepartment = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT section_id, name, department_id FROM sections WHERE department_id = ? ORDER BY name',
@@ -29,7 +29,7 @@ exports.getSectionsByDepartment = async (req, res) => {
 };
 
 // Get section by ID
-exports.getSectionById = async (req, res) => {
+export const getSectionById = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT s.section_id, s.name, s.department_id, d.name as department_name
@@ -45,7 +45,7 @@ exports.getSectionById = async (req, res) => {
 };
 
 // Create a new section
-exports.createSection = async (req, res) => {
+export const createSection = async (req, res) => {
   const { name, department_id } = req.body;
   if (!name || !department_id) {
     return res.status(400).json({ error: 'Section name and department_id are required.' });
@@ -66,7 +66,7 @@ exports.createSection = async (req, res) => {
 };
 
 // Update section by ID
-exports.updateSection = async (req, res) => {
+export const updateSection = async (req, res) => {
   const { name, department_id } = req.body;
   if (!name || !department_id) {
     return res.status(400).json({ error: 'Section name and department_id are required.' });
@@ -88,7 +88,7 @@ exports.updateSection = async (req, res) => {
 };
 
 // Delete section by ID
-exports.deleteSection = async (req, res) => {
+export const deleteSection = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM sections WHERE section_id = ?',

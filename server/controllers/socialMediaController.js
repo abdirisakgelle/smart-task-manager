@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Create new social media post
-exports.createSocialMedia = async (req, res) => {
+export const createSocialMedia = async (req, res) => {
   const { content_id, platforms, post_type, post_date, caption, status, approved, notes } = req.body;
   if (!content_id || !platforms || !post_type || !status) {
     return res.status(400).json({ error: 'content_id, platforms, post_type, and status are required.' });
@@ -28,7 +28,7 @@ exports.createSocialMedia = async (req, res) => {
 };
 
 // Get all social media posts
-exports.getAllSocialMedia = async (req, res) => {
+export const getAllSocialMedia = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -46,7 +46,7 @@ exports.getAllSocialMedia = async (req, res) => {
 };
 
 // Get social media post by ID
-exports.getSocialMediaById = async (req, res) => {
+export const getSocialMediaById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM social_media WHERE post_id = ?',
@@ -60,7 +60,7 @@ exports.getSocialMediaById = async (req, res) => {
 };
 
 // Update social media post by ID
-exports.updateSocialMedia = async (req, res) => {
+export const updateSocialMedia = async (req, res) => {
   const { content_id, platforms, post_type, post_date, caption, status, approved, notes } = req.body;
   if (!content_id || !platforms || !post_type || !status) {
     return res.status(400).json({ error: 'content_id, platforms, post_type, and status are required.' });
@@ -88,7 +88,7 @@ exports.updateSocialMedia = async (req, res) => {
 };
 
 // Delete social media post by ID
-exports.deleteSocialMedia = async (req, res) => {
+export const deleteSocialMedia = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM social_media WHERE post_id = ?',
@@ -102,7 +102,7 @@ exports.deleteSocialMedia = async (req, res) => {
 };
 
 // Filtered endpoints
-exports.getSocialMediaByStatus = async (req, res) => {
+export const getSocialMediaByStatus = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM social_media WHERE status = ? ORDER BY post_id DESC',
@@ -114,7 +114,7 @@ exports.getSocialMediaByStatus = async (req, res) => {
   }
 };
 
-exports.getSocialMediaByContent = async (req, res) => {
+export const getSocialMediaByContent = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM social_media WHERE content_id = ? ORDER BY post_id DESC',
@@ -126,7 +126,7 @@ exports.getSocialMediaByContent = async (req, res) => {
   }
 };
 
-exports.getSocialMediaByPlatform = async (req, res) => {
+export const getSocialMediaByPlatform = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM social_media WHERE platforms LIKE ? ORDER BY post_id DESC',
@@ -138,7 +138,7 @@ exports.getSocialMediaByPlatform = async (req, res) => {
   }
 };
 
-exports.getSocialMediaByPostType = async (req, res) => {
+export const getSocialMediaByPostType = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM social_media WHERE post_type = ? ORDER BY post_id DESC',
@@ -150,7 +150,7 @@ exports.getSocialMediaByPostType = async (req, res) => {
   }
 };
 
-exports.getSocialMediaByApproved = async (req, res) => {
+export const getSocialMediaByApproved = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM social_media WHERE approved = ? ORDER BY post_id DESC',

@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 async function cleanupNotifications() {
   try {
@@ -77,7 +77,7 @@ async function cleanupNotifications() {
 }
 
 // Run the cleanup
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   cleanupNotifications()
     .then(() => {
       console.log('\nCleanup completed');
@@ -89,4 +89,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { cleanupNotifications }; 
+export { cleanupNotifications }; 

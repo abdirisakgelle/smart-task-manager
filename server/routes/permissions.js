@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const permissionsController = require('../controllers/permissionsController');
-const { verifyToken } = require('../middleware/auth');
-const { requireAdmin } = require('../middleware/rbac');
-const { addUserContext } = require('../middleware/pageAccess');
+import * as permissionsController from '../controllers/permissionsController.js';
+import { verifyToken } from '../middleware/auth.js';
+import { requireAdmin } from '../middleware/rbac.js';
+import { addUserContext } from '../middleware/pageAccess.js';
 
 // Get available pages (admin only)
 router.get('/pages', verifyToken, requireAdmin, permissionsController.getAvailablePages);
@@ -23,4 +23,4 @@ router.get('/current-user', verifyToken, addUserContext(), permissionsController
 // Check page access for current user
 router.get('/check/:pageName', verifyToken, permissionsController.checkPageAccess);
 
-module.exports = router; 
+export default router; 

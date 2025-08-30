@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Register a new employee with auto-generated job title
-exports.registerEmployee = async (req, res) => {
+export const registerEmployee = async (req, res) => {
   const { name, shift, unit_id, phone } = req.body;
   
   if (!name || !shift || !unit_id) {
@@ -49,7 +49,7 @@ exports.registerEmployee = async (req, res) => {
 };
 
 // Create a new employee (updated to include job_title)
-exports.createEmployee = async (req, res) => {
+export const createEmployee = async (req, res) => {
   const { name, shift, unit_id, phone, job_title } = req.body;
   if (!name || !shift) {
     return res.status(400).json({ error: 'Name and shift are required.' });
@@ -73,7 +73,7 @@ exports.createEmployee = async (req, res) => {
 };
 
 // Get all employees with hierarchy info
-exports.getAllEmployees = async (req, res) => {
+export const getAllEmployees = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -99,7 +99,7 @@ exports.getAllEmployees = async (req, res) => {
 };
 
 // Get employee by ID with hierarchy info
-exports.getEmployeeById = async (req, res) => {
+export const getEmployeeById = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -126,7 +126,7 @@ exports.getEmployeeById = async (req, res) => {
 };
 
 // Update employee by ID
-exports.updateEmployee = async (req, res) => {
+export const updateEmployee = async (req, res) => {
   const { name, shift, unit_id, phone } = req.body;
   if (!name || !shift) {
     return res.status(400).json({ error: 'Name and shift are required.' });
@@ -168,7 +168,7 @@ exports.updateEmployee = async (req, res) => {
 };
 
 // Delete employee by ID
-exports.deleteEmployee = async (req, res) => {
+export const deleteEmployee = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM employees WHERE employee_id = ?',
@@ -182,7 +182,7 @@ exports.deleteEmployee = async (req, res) => {
 };
 
 // Get employees by department
-exports.getEmployeesByDepartment = async (req, res) => {
+export const getEmployeesByDepartment = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -209,7 +209,7 @@ exports.getEmployeesByDepartment = async (req, res) => {
 };
 
 // Get employees by shift
-exports.getEmployeesByShift = async (req, res) => {
+export const getEmployeesByShift = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 

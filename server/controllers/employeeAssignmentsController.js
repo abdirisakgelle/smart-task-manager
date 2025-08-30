@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Create assignment
-exports.createAssignment = async (req, res) => {
+export const createAssignment = async (req, res) => {
   const { employee_id, task_type, task_id, role_in_task } = req.body;
   if (!employee_id || !task_type || !task_id || !role_in_task) {
     return res.status(400).json({ error: 'All fields are required' });
@@ -24,7 +24,7 @@ exports.createAssignment = async (req, res) => {
 };
 
 // Get all assignments
-exports.getAllAssignments = async (req, res) => {
+export const getAllAssignments = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT assignment_id, employee_id, task_type, task_id, role_in_task FROM employee_assignments'
@@ -36,7 +36,7 @@ exports.getAllAssignments = async (req, res) => {
 };
 
 // Get assignment by ID
-exports.getAssignmentById = async (req, res) => {
+export const getAssignmentById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT assignment_id, employee_id, task_type, task_id, role_in_task FROM employee_assignments WHERE assignment_id = ?',
@@ -50,7 +50,7 @@ exports.getAssignmentById = async (req, res) => {
 };
 
 // Update assignment
-exports.updateAssignment = async (req, res) => {
+export const updateAssignment = async (req, res) => {
   const { employee_id, task_type, task_id, role_in_task } = req.body;
   if (!employee_id || !task_type || !task_id || !role_in_task) {
     return res.status(400).json({ error: 'All fields are required' });
@@ -74,7 +74,7 @@ exports.updateAssignment = async (req, res) => {
 };
 
 // Delete assignment
-exports.deleteAssignment = async (req, res) => {
+export const deleteAssignment = async (req, res) => {
   try {
     const [result] = await pool.query('DELETE FROM employee_assignments WHERE assignment_id = ?', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Assignment not found' });
@@ -85,7 +85,7 @@ exports.deleteAssignment = async (req, res) => {
 };
 
 // Get all assignments for a specific employee
-exports.getAssignmentsByEmployee = async (req, res) => {
+export const getAssignmentsByEmployee = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT assignment_id, employee_id, task_type, task_id, role_in_task FROM employee_assignments WHERE employee_id = ?',

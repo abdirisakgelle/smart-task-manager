@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import * as usersController from '../controllers/usersController.js';
+import { verifyToken } from '../middleware/auth.js';
+import { requireAdmin, canManageUsers } from '../middleware/rbac.js';
+import { checkPageAccess, addUserContext } from '../middleware/pageAccess.js';
+
 const router = express.Router();
-const usersController = require('../controllers/usersController');
-const { verifyToken } = require('../middleware/auth');
-const { requireAdmin, canManageUsers } = require('../middleware/rbac');
-const { checkPageAccess, addUserContext } = require('../middleware/pageAccess');
 
 // Public routes
 router.post('/login', usersController.loginUser);
@@ -28,4 +29,4 @@ router.put('/:user_id/password', verifyToken, requireAdmin, usersController.rese
 router.put('/:id', verifyToken, requireAdmin, usersController.updateUser);
 router.delete('/:id', verifyToken, requireAdmin, usersController.deleteUser);
 
-module.exports = router; 
+export default router; 

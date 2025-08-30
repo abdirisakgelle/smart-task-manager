@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Function to auto-insert tickets into supervisor reviews
 const autoInsertTicketsToReviews = async () => {
@@ -36,4 +36,4 @@ const autoInsertTicketsToReviews = async () => {
 autoInsertTicketsToReviews();
 
 // Export the function for use in other parts of the application
-module.exports = { autoInsertTicketsToReviews }; 
+export { autoInsertTicketsToReviews }; 

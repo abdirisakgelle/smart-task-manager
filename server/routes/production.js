@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const productionController = require('../controllers/productionController');
+import * as productionController from '../controllers/productionController.js';
 
 // Filtered endpoints
 router.get('/status/:production_status', productionController.getProductionByStatus);
@@ -15,4 +15,4 @@ router.get('/:id', productionController.getProductionById);
 router.put('/:id', productionController.updateProduction);
 router.delete('/:id', productionController.deleteProduction);
 
-module.exports = router; 
+export default router; 

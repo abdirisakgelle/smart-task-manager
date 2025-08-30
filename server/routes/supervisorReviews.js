@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const supervisorReviewsController = require('../controllers/supervisorReviewsController');
+import * as supervisorReviewsController from '../controllers/supervisorReviewsController.js';
 
 // Filtered endpoints
 router.get('/supervisor/:supervisor_id', supervisorReviewsController.getSupervisorReviewsBySupervisor);
@@ -15,4 +15,4 @@ router.get('/:id', supervisorReviewsController.getSupervisorReviewById);
 router.put('/:id', supervisorReviewsController.updateSupervisorReview);
 router.delete('/:id', supervisorReviewsController.deleteSupervisorReview);
 
-module.exports = router; 
+export default router; 

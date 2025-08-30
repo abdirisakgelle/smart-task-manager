@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Get all ideas with employee names
-exports.getAllIdeas = async (req, res) => {
+export const getAllIdeas = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -21,7 +21,7 @@ exports.getAllIdeas = async (req, res) => {
 };
 
 // Create a new idea
-exports.createIdea = async (req, res) => {
+export const createIdea = async (req, res) => {
   const { title, contributor_id, script_writer_id, script_deadline, priority, status, notes } = req.body;
   
   if (!title || !contributor_id || !script_writer_id) {
@@ -136,7 +136,7 @@ exports.createIdea = async (req, res) => {
 };
 
 // Get idea by ID
-exports.getIdeaById = async (req, res) => {
+export const getIdeaById = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -160,7 +160,7 @@ exports.getIdeaById = async (req, res) => {
 };
 
 // Update idea by ID
-exports.updateIdea = async (req, res) => {
+export const updateIdea = async (req, res) => {
   const { title, contributor_id, script_writer_id, script_deadline, priority, status, notes } = req.body;
   
   if (!title || !contributor_id || !script_writer_id) {
@@ -257,7 +257,7 @@ exports.updateIdea = async (req, res) => {
 };
 
 // Delete idea by ID
-exports.deleteIdea = async (req, res) => {
+export const deleteIdea = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM ideas WHERE idea_id = ?',
@@ -275,7 +275,7 @@ exports.deleteIdea = async (req, res) => {
 };
 
 // Get ideas by status
-exports.getIdeasByStatus = async (req, res) => {
+export const getIdeasByStatus = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -296,7 +296,7 @@ exports.getIdeasByStatus = async (req, res) => {
 };
 
 // Get ideas by priority
-exports.getIdeasByPriority = async (req, res) => {
+export const getIdeasByPriority = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 

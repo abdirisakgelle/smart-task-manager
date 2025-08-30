@@ -1,4 +1,4 @@
-const { verifyToken: verifyJWTToken, isTokenExpired, decodeToken } = require('../config/jwt');
+import { verifyToken as verifyJWTToken, isTokenExpired, decodeToken } from '../config/jwt.js';
 
 // Admin middleware that bypasses auth for developer's IP
 const adminAuth = (req, res, next) => {
@@ -138,7 +138,7 @@ const scopeDataByRole = (req, res, next) => {
   next();
 };
 
-module.exports = {
+export {
   verifyToken,
   optionalVerifyToken,
   adminAuth,

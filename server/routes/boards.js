@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const boardsController = require('../controllers/boardsController');
-const { verifyToken } = require('../middleware/auth');
+import * as boardsController from '../controllers/boardsController.js';
+import { verifyToken } from '../middleware/auth.js';
 
 // Protected routes - require authentication
 router.use(verifyToken);
@@ -17,4 +17,4 @@ router.post('/:boardId/tasks', boardsController.createTask);
 router.put('/:boardId/tasks/:taskId', boardsController.updateTask);
 router.delete('/:boardId/tasks/:taskId', boardsController.deleteTask);
 
-module.exports = router; 
+export default router; 

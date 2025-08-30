@@ -1,6 +1,6 @@
-const pool = require('../config/db');
-const bcrypt = require('bcryptjs');
-const { generateToken, verifyToken, isTokenExpired } = require('../config/jwt');
+import pool from '../config/db.js';
+import bcrypt from 'bcryptjs';
+import { generateToken, verifyToken, isTokenExpired } from '../config/jwt.js';
 
 // Helper to set refresh cookie with proper flags
 const setRefreshCookie = (res, token) => {
@@ -19,7 +19,7 @@ const setRefreshCookie = (res, token) => {
 };
 
 // Create user with hashed password and employee linking
-exports.createUser = async (req, res) => {
+export const createUser = async (req, res) => {
   const { username, password, system_role, employee_id } = req.body;
   
   if (!username || !password) {
@@ -103,7 +103,7 @@ exports.createUser = async (req, res) => {
 };
 
 // Get all users with employee information (filtered by permissions)
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
     // Check user's data access level
     const userDataAccess = req.user.dataAccess;
@@ -157,7 +157,7 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // Get users available for employee linking (users without employee_id)
-exports.getAvailableUsersForLinking = async (req, res) => {
+export const getAvailableUsersForLinking = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT user_id, username, system_role, status, created_at
@@ -174,7 +174,7 @@ exports.getAvailableUsersForLinking = async (req, res) => {
 };
 
 // Get employees available for user creation (employees without user accounts)
-exports.getAvailableEmployees = async (req, res) => {
+export const getAvailableEmployees = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT e.employee_id, e.name, un.name as job_title, e.shift,
@@ -196,7 +196,7 @@ exports.getAvailableEmployees = async (req, res) => {
 };
 
 // Get user by ID with employee information
-exports.getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT u.user_id, u.username, u.system_role, u.status, u.employee_id, u.created_at,
@@ -232,7 +232,7 @@ exports.getUserById = async (req, res) => {
 };
 
 // Update user role
-exports.updateUserRole = async (req, res) => {
+export const updateUserRole = async (req, res) => {
   const { system_role } = req.body;
   const userId = req.params.user_id;
   
@@ -291,7 +291,7 @@ exports.updateUserRole = async (req, res) => {
 };
 
 // Update user status (activate/deactivate)
-exports.updateUserStatus = async (req, res) => {
+export const updateUserStatus = async (req, res) => {
   const { status } = req.body;
   const userId = req.params.user_id;
   
@@ -332,7 +332,7 @@ exports.updateUserStatus = async (req, res) => {
 };
 
 // Reset user password
-exports.resetUserPassword = async (req, res) => {
+export const resetUserPassword = async (req, res) => {
   const { new_password } = req.body;
   const userId = req.params.user_id;
   
@@ -376,7 +376,7 @@ exports.resetUserPassword = async (req, res) => {
 };
 
 // Update user (general update)
-exports.updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
   const { employee_id, username, system_role, status } = req.body;
   const userId = req.params.id;
   
@@ -450,7 +450,7 @@ exports.updateUser = async (req, res) => {
 };
 
 // Delete user
-exports.deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   const userId = req.params.id;
   
   try {
@@ -482,7 +482,7 @@ exports.deleteUser = async (req, res) => {
 };
 
 // Login user with bcrypt password verification
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -511,12 +511,12 @@ exports.loginUser = async (req, res) => {
     }
     
     // Generate tokens
-    const tokenType = user.system_role === 'admin' ? 'admin' : 'access';
+    const tokenType = user.role === 'admin' ? 'admin' : 'access';
     const accessToken = generateToken(
       { 
         user_id: user.user_id, 
         username: user.username,
-        system_role: user.system_role,
+        system_role: user.role,
         employee_id: user.employee_id
       },
       tokenType
@@ -525,7 +525,7 @@ exports.loginUser = async (req, res) => {
       { 
         user_id: user.user_id, 
         username: user.username,
-        system_role: user.system_role,
+        system_role: user.role,
         employee_id: user.employee_id
       },
       'refresh'
@@ -539,7 +539,7 @@ exports.loginUser = async (req, res) => {
       user: {
         user_id: user.user_id,
         username: user.username,
-        system_role: user.system_role,
+        system_role: user.role,
         employee_id: user.employee_id,
         name: user.employee_name,
         job_title: user.job_title,
@@ -554,7 +554,7 @@ exports.loginUser = async (req, res) => {
 };
 
 // Refresh JWT token
-exports.refreshToken = async (req, res) => {
+export const refreshToken = async (req, res) => {
   try {
     // Prefer httpOnly cookie; fall back to body for backward compat
     const refreshToken = req.cookies?.refresh_token || req.body?.refreshToken;
@@ -633,7 +633,7 @@ exports.refreshToken = async (req, res) => {
 };
 
 // Get current user profile
-exports.getCurrentUser = async (req, res) => {
+export const getCurrentUser = async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT u.user_id, u.employee_id, u.username, u.system_role, u.status, u.created_at,
@@ -668,7 +668,7 @@ exports.getCurrentUser = async (req, res) => {
 
 
 // Public: Get demo credentials grouped by role (reads from DB; no passwords stored)
-exports.getDemoCredentials = async (req, res) => {
+export const getDemoCredentials = async (req, res) => {
   try {
     // Keep demo buckets but align to system_role where applicable
     const roles = ['admin', 'media', 'agent'];

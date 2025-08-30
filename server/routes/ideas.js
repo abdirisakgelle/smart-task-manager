@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const ideasController = require('../controllers/ideasController');
+import * as ideasController from '../controllers/ideasController.js';
 
 // Basic CRUD operations
 router.post('/', ideasController.createIdea);
@@ -13,4 +13,4 @@ router.delete('/:id', ideasController.deleteIdea);
 router.get('/status/:status', ideasController.getIdeasByStatus);
 router.get('/priority/:priority', ideasController.getIdeasByPriority);
 
-module.exports = router; 
+export default router; 

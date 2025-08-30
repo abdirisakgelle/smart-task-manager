@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const notificationsController = require('../controllers/notificationsController');
-const { verifyToken } = require('../middleware/auth');
+import * as notificationsController from '../controllers/notificationsController.js';
+import { verifyToken } from '../middleware/auth.js';
 
 // Protected routes - require authentication
 router.use(verifyToken);
@@ -32,4 +32,4 @@ router.get('/user/:user_id', notificationsController.getUserNotifications);
 router.get('/user/:user_id/unread-count', notificationsController.getUnreadCount);
 router.put('/user/:user_id/mark-all-read', notificationsController.markAllAsRead);
 
-module.exports = router; 
+export default router; 

@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const unitsController = require('../controllers/unitsController');
+import * as unitsController from '../controllers/unitsController.js';
 
 // Get all units
 router.get('/', unitsController.getAllUnits);
@@ -20,4 +20,4 @@ router.put('/:id', unitsController.updateUnit);
 // Delete unit
 router.delete('/:id', unitsController.deleteUnit);
 
-module.exports = router; 
+export default router; 

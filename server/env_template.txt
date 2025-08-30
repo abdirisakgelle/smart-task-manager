@@ -1,0 +1,36 @@
+# Database Configuration
+# Replace these values with your actual database credentials
+# Copy this file to .env and update the values
+
+DB_HOST=your_database_host
+DB_USER=your_database_username
+DB_PASSWORD=your_database_password
+DB_NAME=nasiye_tasks
+DB_PORT=3306
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_here
+JWT_EXPIRES_IN=24h
+
+# Server Configuration
+PORT=5000
+NODE_ENV=production
+
+# Example for PlanetScale:
+# DB_HOST=aws.connect.psdb.cloud
+# DB_USER=your_planetscale_username
+# DB_PASSWORD=your_planetscale_password
+# DB_NAME=nasiye_tasks
+
+# Example for Railway:
+# DB_HOST=containers-us-west-1.railway.app
+# DB_USER=root
+# DB_PASSWORD=your_railway_password
+# DB_NAME=railway
+
+# Example for AWS RDS:
+# DB_HOST=your-rds-endpoint.region.rds.amazonaws.com
+# DB_USER=admin
+# DB_PASSWORD=your_rds_password
+# DB_NAME=nasiye_tasks
+

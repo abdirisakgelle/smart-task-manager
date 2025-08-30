@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const ticketsController = require('../controllers/ticketsController');
-const { verifyToken } = require('../middleware/auth');
-const { checkPageAccess, addUserContext } = require('../middleware/pageAccess');
+import * as ticketsController from '../controllers/ticketsController.js';
+import { verifyToken } from '../middleware/auth.js';
+import { checkPageAccess, addUserContext } from '../middleware/pageAccess.js';
 
 // Filtered endpoints
 router.get('/agent/:agent_id', ticketsController.getTicketsByAgent);
@@ -19,4 +19,4 @@ router.get('/:id', verifyToken, checkPageAccess('tickets'), addUserContext(), ti
 router.put('/:id', verifyToken, checkPageAccess('tickets'), addUserContext(), ticketsController.updateTicket);
 router.delete('/:id', verifyToken, checkPageAccess('tickets'), addUserContext(), ticketsController.deleteTicket);
 
-module.exports = router; 
+export default router; 

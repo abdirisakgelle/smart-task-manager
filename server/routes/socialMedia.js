@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const socialMediaController = require('../controllers/socialMediaController');
+import * as socialMediaController from '../controllers/socialMediaController.js';
 
 // Filtered endpoints
 router.get('/status/:status', socialMediaController.getSocialMediaByStatus);
@@ -16,4 +16,4 @@ router.get('/:id', socialMediaController.getSocialMediaById);
 router.put('/:id', socialMediaController.updateSocialMedia);
 router.delete('/:id', socialMediaController.deleteSocialMedia);
 
-module.exports = router; 
+export default router; 

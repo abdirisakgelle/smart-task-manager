@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Get all units with section and department info
-exports.getAllUnits = async (req, res) => {
+export const getAllUnits = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT u.unit_id, u.name, u.section_id, s.name as section_name, s.department_id, d.name as department_name
@@ -17,7 +17,7 @@ exports.getAllUnits = async (req, res) => {
 };
 
 // Get units by section
-exports.getUnitsBySection = async (req, res) => {
+export const getUnitsBySection = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT unit_id, name, section_id FROM units WHERE section_id = ? ORDER BY name',
@@ -30,7 +30,7 @@ exports.getUnitsBySection = async (req, res) => {
 };
 
 // Get unit by ID
-exports.getUnitById = async (req, res) => {
+export const getUnitById = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT u.unit_id, u.name, u.section_id, s.name as section_name, s.department_id, d.name as department_name
@@ -47,7 +47,7 @@ exports.getUnitById = async (req, res) => {
 };
 
 // Create a new unit
-exports.createUnit = async (req, res) => {
+export const createUnit = async (req, res) => {
   const { name, section_id } = req.body;
   if (!name || !section_id) {
     return res.status(400).json({ error: 'Unit name and section_id are required.' });
@@ -68,7 +68,7 @@ exports.createUnit = async (req, res) => {
 };
 
 // Update unit by ID
-exports.updateUnit = async (req, res) => {
+export const updateUnit = async (req, res) => {
   const { name, section_id } = req.body;
   if (!name || !section_id) {
     return res.status(400).json({ error: 'Unit name and section_id are required.' });
@@ -90,7 +90,7 @@ exports.updateUnit = async (req, res) => {
 };
 
 // Delete unit by ID
-exports.deleteUnit = async (req, res) => {
+export const deleteUnit = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM units WHERE unit_id = ?',

@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import * as controller from '../controllers/employeeAssignmentsController.js';
+
 const router = express.Router();
-const controller = require('../controllers/employeeAssignmentsController');
 
 // Test route to verify file is loaded
 router.get('/test', (req, res) => res.json({ message: 'Test route works' }));
@@ -15,4 +16,4 @@ router.get('/:id', controller.getAssignmentById);
 router.put('/:id', controller.updateAssignment);
 router.delete('/:id', controller.deleteAssignment);
 
-module.exports = router; 
+export default router; 

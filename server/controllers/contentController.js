@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Create new content
-exports.createContent = async (req, res) => {
+export const createContent = async (req, res) => {
   const { idea_id, script_status, content_status, director_id, filming_date, cast_and_presenters, notes } = req.body;
   if (!idea_id || !script_status || !content_status || !director_id) {
     return res.status(400).json({ error: 'idea_id, script_status, content_status, and director_id are required.' });
@@ -108,7 +108,7 @@ exports.createContent = async (req, res) => {
 };
 
 // Get all content with employee names (scoped)
-exports.getAllContent = async (req, res) => {
+export const getAllContent = async (req, res) => {
   try {
     const { buildTeamScope } = require('../middleware/pageAccess');
     const scope = await buildTeamScope(req, pool, { ownerField: 'c.director_id', prefer: 'section_or_department' });
@@ -132,7 +132,7 @@ exports.getAllContent = async (req, res) => {
 };
 
 // Get content by ID
-exports.getContentById = async (req, res) => {
+export const getContentById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM content WHERE content_id = ?',
@@ -146,7 +146,7 @@ exports.getContentById = async (req, res) => {
 };
 
 // Update content by ID
-exports.updateContent = async (req, res) => {
+export const updateContent = async (req, res) => {
   const { idea_id, title, script_status, content_status, director_id, filming_date, cast_and_presenters, notes } = req.body;
   if (!idea_id || !title || !script_status || !content_status || !director_id) {
     return res.status(400).json({ error: 'idea_id, title, script_status, content_status, and director_id are required.' });
@@ -185,7 +185,7 @@ exports.updateContent = async (req, res) => {
 };
 
 // Delete content by ID
-exports.deleteContent = async (req, res) => {
+export const deleteContent = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM content WHERE content_id = ?',
@@ -199,7 +199,7 @@ exports.deleteContent = async (req, res) => {
 };
 
 // Filtered endpoints
-exports.getContentByScriptStatus = async (req, res) => {
+export const getContentByScriptStatus = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM content WHERE script_status = ? ORDER BY content_id DESC',
@@ -211,7 +211,7 @@ exports.getContentByScriptStatus = async (req, res) => {
   }
 };
 
-exports.getContentByDirector = async (req, res) => {
+export const getContentByDirector = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM content WHERE director_id = ? ORDER BY content_id DESC',
@@ -223,7 +223,7 @@ exports.getContentByDirector = async (req, res) => {
   }
 };
 
-exports.getContentByIdea = async (req, res) => {
+export const getContentByIdea = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM content WHERE idea_id = ? ORDER BY content_id DESC',

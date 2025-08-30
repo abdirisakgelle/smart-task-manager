@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const tasksController = require('../controllers/tasksController');
-const { verifyToken, scopeDataByRole } = require('../middleware/auth');
-const { requireAuth, requireRole } = require('../middleware/pageAccess');
+import * as tasksController from '../controllers/tasksController.js';
+import { verifyToken, scopeDataByRole } from '../middleware/auth.js';
+import { requireAuth, requireRole } from '../middleware/pageAccess.js';
 
 // Apply authentication middleware to all routes
 router.use(verifyToken);
@@ -59,4 +59,4 @@ router.post('/:id/complete', tasksController.completeTask);
 // Approve/reject extension request (for managers/admins)
 router.post('/:id/approve-extension', tasksController.approveExtension);
 
-module.exports = router; 
+export default router; 

@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const sectionsController = require('../controllers/sectionsController');
+import * as sectionsController from '../controllers/sectionsController.js';
 
 // Get all sections
 router.get('/', sectionsController.getAllSections);
@@ -20,4 +20,4 @@ router.put('/:id', sectionsController.updateSection);
 // Delete section
 router.delete('/:id', sectionsController.deleteSection);
 
-module.exports = router; 
+export default router; 

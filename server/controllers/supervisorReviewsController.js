@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Auto-insert tickets into supervisor reviews (runs automatically)
 const autoInsertTicketsToReviews = async () => {
@@ -66,7 +66,7 @@ const checkAndEscalateTickets = async () => {
 };
 
 // Create new supervisor review
-exports.createSupervisorReview = async (req, res) => {
+export const createSupervisorReview = async (req, res) => {
   const { ticket_id, supervisor_id, issue_status, resolved, notes } = req.body;
   if (!ticket_id || !supervisor_id) {
     return res.status(400).json({ error: 'ticket_id and supervisor_id are required.' });
@@ -91,7 +91,7 @@ exports.createSupervisorReview = async (req, res) => {
 };
 
 // Get all supervisor reviews with joined ticket data and auto-insertion
-exports.getAllSupervisorReviews = async (req, res) => {
+export const getAllSupervisorReviews = async (req, res) => {
   try {
     // First, run auto-insertion to ensure all eligible tickets are in the review table
     await autoInsertTicketsToReviews();
@@ -145,7 +145,7 @@ exports.getAllSupervisorReviews = async (req, res) => {
 };
 
 // Get supervisor review by ID
-exports.getSupervisorReviewById = async (req, res) => {
+export const getSupervisorReviewById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM supervisor_reviews WHERE review_id = ?',
@@ -159,7 +159,7 @@ exports.getSupervisorReviewById = async (req, res) => {
 };
 
 // Update supervisor review by ID
-exports.updateSupervisorReview = async (req, res) => {
+export const updateSupervisorReview = async (req, res) => {
   const { ticket_id, supervisor_id, issue_status, resolved, notes } = req.body;
   if (!ticket_id || !supervisor_id) {
     return res.status(400).json({ error: 'ticket_id and supervisor_id are required.' });
@@ -184,7 +184,7 @@ exports.updateSupervisorReview = async (req, res) => {
 };
 
 // Delete supervisor review by ID
-exports.deleteSupervisorReview = async (req, res) => {
+export const deleteSupervisorReview = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM supervisor_reviews WHERE review_id = ?',
@@ -198,7 +198,7 @@ exports.deleteSupervisorReview = async (req, res) => {
 };
 
 // Filtered endpoints
-exports.getSupervisorReviewsBySupervisor = async (req, res) => {
+export const getSupervisorReviewsBySupervisor = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM supervisor_reviews WHERE supervisor_id = ? ORDER BY review_date DESC',
@@ -210,7 +210,7 @@ exports.getSupervisorReviewsBySupervisor = async (req, res) => {
   }
 };
 
-exports.getSupervisorReviewsByTicket = async (req, res) => {
+export const getSupervisorReviewsByTicket = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM supervisor_reviews WHERE ticket_id = ? ORDER BY review_date DESC',
@@ -222,7 +222,7 @@ exports.getSupervisorReviewsByTicket = async (req, res) => {
   }
 };
 
-exports.getSupervisorReviewsByIssueStatus = async (req, res) => {
+export const getSupervisorReviewsByIssueStatus = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM supervisor_reviews WHERE issue_status = ? ORDER BY review_date DESC',
@@ -234,7 +234,7 @@ exports.getSupervisorReviewsByIssueStatus = async (req, res) => {
   }
 };
 
-exports.getSupervisorReviewsByResolved = async (req, res) => {
+export const getSupervisorReviewsByResolved = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM supervisor_reviews WHERE resolved = ? ORDER BY review_date DESC',

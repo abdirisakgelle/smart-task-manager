@@ -1,5 +1,5 @@
-const cron = require('node-cron');
-const { cleanupNotifications } = require('../scripts/cleanup-notifications');
+import cron from 'node-cron';
+import { cleanupNotifications } from '../scripts/cleanup-notifications.js';
 
 // Schedule notification cleanup to run every Saturday at 2:00 AM
 const scheduleNotificationCleanup = () => {
@@ -33,7 +33,7 @@ const runManualCleanup = async () => {
   }
 };
 
-module.exports = {
+export {
   scheduleNotificationCleanup,
   runManualCleanup
 }; 

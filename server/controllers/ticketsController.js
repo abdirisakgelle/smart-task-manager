@@ -2,7 +2,7 @@ const pool = require('../config/db');
 const cors = require('cors');
 
 // Create new ticket
-exports.createTicket = async (req, res) => {
+export const createTicket = async (req, res) => {
   const { customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
   
   // Use authenticated user's employee_id as agent_id if not provided
@@ -50,7 +50,7 @@ exports.createTicket = async (req, res) => {
 };
 
 // Get all tickets (scoped by role/team)
-exports.getAllTickets = async (req, res) => {
+export const getAllTickets = async (req, res) => {
   try {
     const { buildTeamScope } = require('../middleware/pageAccess');
     // Use unified owner field for support tickets
@@ -67,7 +67,7 @@ exports.getAllTickets = async (req, res) => {
 };
 
 // Get ticket by ID
-exports.getTicketById = async (req, res) => {
+export const getTicketById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM tickets WHERE ticket_id = ?',
@@ -81,7 +81,7 @@ exports.getTicketById = async (req, res) => {
 };
 
 // Update ticket by ID
-exports.updateTicket = async (req, res) => {
+export const updateTicket = async (req, res) => {
   const { customer_phone, communication_channel, device_type, issue_category, issue_type, issue_description, agent_id, first_call_resolution, resolution_status, end_time } = req.body;
   
   // Use authenticated user's employee_id as agent_id if not provided
@@ -129,7 +129,7 @@ exports.updateTicket = async (req, res) => {
 };
 
 // Delete ticket by ID
-exports.deleteTicket = async (req, res) => {
+export const deleteTicket = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM tickets WHERE ticket_id = ?',
@@ -143,7 +143,7 @@ exports.deleteTicket = async (req, res) => {
 };
 
 // Filtered endpoints
-exports.getTicketsByAgent = async (req, res) => {
+export const getTicketsByAgent = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM tickets WHERE agent_id = ? ORDER BY created_at DESC',
@@ -155,7 +155,7 @@ exports.getTicketsByAgent = async (req, res) => {
   }
 };
 
-exports.getTicketsByResolutionStatus = async (req, res) => {
+export const getTicketsByResolutionStatus = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM tickets WHERE resolution_status = ? ORDER BY created_at DESC',
@@ -167,7 +167,7 @@ exports.getTicketsByResolutionStatus = async (req, res) => {
   }
 };
 
-exports.getTicketsByIssueType = async (req, res) => {
+export const getTicketsByIssueType = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM tickets WHERE issue_type = ? ORDER BY created_at DESC',
@@ -179,7 +179,7 @@ exports.getTicketsByIssueType = async (req, res) => {
   }
 };
 
-exports.getTicketsByDeviceType = async (req, res) => {
+export const getTicketsByDeviceType = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM tickets WHERE device_type = ? ORDER BY created_at DESC',
@@ -191,7 +191,7 @@ exports.getTicketsByDeviceType = async (req, res) => {
   }
 };
 
-exports.getTicketsByFirstCallResolution = async (req, res) => {
+export const getTicketsByFirstCallResolution = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM tickets WHERE first_call_resolution = ? ORDER BY created_at DESC',
@@ -203,7 +203,7 @@ exports.getTicketsByFirstCallResolution = async (req, res) => {
   }
 };
 
-exports.getTicketsByCommunicationChannel = async (req, res) => {
+export const getTicketsByCommunicationChannel = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM tickets WHERE communication_channel = ? ORDER BY created_at DESC',

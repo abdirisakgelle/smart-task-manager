@@ -1,5 +1,5 @@
-const pool = require('../config/db');
-const { verifyToken: verifyJWTToken, isTokenExpired } = require('../config/jwt');
+import pool from '../config/db.js';
+import { verifyToken as verifyJWTToken, isTokenExpired } from '../config/jwt.js';
 
 // Middleware to check page access for protected routes
 const checkPageAccess = (pageName) => {
@@ -193,7 +193,7 @@ const filterDataByPermission = (dataType) => {
   };
 };
 
-module.exports = { 
+export { 
   checkPageAccess,
   checkFeatureAccess,
   addUserContext,
@@ -290,7 +290,4 @@ const buildTeamScope = async (req, poolRef, options = {}) => {
   return { where: ` WHERE ${ownerField} = ?`, params: [req.user?.employee_id || -1] };
 };
 
-module.exports.requireAuth = requireAuth;
-module.exports.requireRole = requireRole;
-module.exports.buildTeamScope = buildTeamScope;
-module.exports.resolveUserOrgContext = resolveUserOrgContext;
+export { requireAuth, requireRole, buildTeamScope, resolveUserOrgContext };

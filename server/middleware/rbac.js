@@ -1,4 +1,4 @@
-const { verifyToken } = require('../config/jwt');
+import { verifyToken } from '../config/jwt.js';
 
 // Role-based access control middleware
 const requireRole = (allowedRoles) => {
@@ -58,7 +58,7 @@ const canManageContent = requireRole(['admin', 'media']);
 // Check if user can access follow-ups
 const canAccessFollowUps = requireRole(['admin', 'follow_up']);
 
-module.exports = {
+export {
   requireRole,
   requireAdmin,
   requireManagerOrAbove,

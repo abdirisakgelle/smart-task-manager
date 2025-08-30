@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 // JWT Configuration
 const JWT_CONFIG = {
@@ -93,7 +93,7 @@ const getTimeUntilExpiration = (token) => {
   }
 };
 
-module.exports = {
+export {
   JWT_CONFIG,
   generateToken,
   verifyToken,

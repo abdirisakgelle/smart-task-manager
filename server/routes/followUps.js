@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const followUpsController = require('../controllers/followUpsController');
+import * as followUpsController from '../controllers/followUpsController.js';
 
 // Get eligible tickets for follow-up
 router.get('/eligible', followUpsController.getEligibleFollowUps);
@@ -24,4 +24,4 @@ router.get('/:id', followUpsController.getFollowUpById);
 router.put('/:id', followUpsController.updateFollowUp);
 router.delete('/:id', followUpsController.deleteFollowUp);
 
-module.exports = router; 
+export default router; 

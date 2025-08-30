@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const dashboardController = require('../controllers/dashboardController');
-const { adminAuth, requireRole, requireAnyRole, scopeDataByRole, verifyToken } = require('../middleware/auth');
+import * as dashboardController from '../controllers/dashboardController.js';
+import { adminAuth, requireRole, requireAnyRole, scopeDataByRole, verifyToken } from '../middleware/auth.js';
 
 // Generic dashboard route - automatically routes to role-specific dashboard
 router.get('/', verifyToken, scopeDataByRole, dashboardController.getGenericDashboard);
@@ -43,4 +43,4 @@ router.post('/create-test-tickets', dashboardController.createTestTickets);
 // Debug endpoint to check database contents
 router.get('/debug-tickets', dashboardController.debugTickets);
 
-module.exports = router; 
+export default router; 

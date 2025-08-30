@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Get all departments
-exports.getAllDepartments = async (req, res) => {
+export const getAllDepartments = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT department_id, name FROM departments ORDER BY name'
@@ -13,7 +13,7 @@ exports.getAllDepartments = async (req, res) => {
 };
 
 // Get department by ID
-exports.getDepartmentById = async (req, res) => {
+export const getDepartmentById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT department_id, name FROM departments WHERE department_id = ?',
@@ -27,7 +27,7 @@ exports.getDepartmentById = async (req, res) => {
 };
 
 // Create a new department
-exports.createDepartment = async (req, res) => {
+export const createDepartment = async (req, res) => {
   const { name } = req.body;
   if (!name) {
     return res.status(400).json({ error: 'Department name is required.' });
@@ -47,7 +47,7 @@ exports.createDepartment = async (req, res) => {
 };
 
 // Update department by ID
-exports.updateDepartment = async (req, res) => {
+export const updateDepartment = async (req, res) => {
   const { name } = req.body;
   if (!name) {
     return res.status(400).json({ error: 'Department name is required.' });
@@ -68,7 +68,7 @@ exports.updateDepartment = async (req, res) => {
 };
 
 // Delete department by ID
-exports.deleteDepartment = async (req, res) => {
+export const deleteDepartment = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM departments WHERE department_id = ?',

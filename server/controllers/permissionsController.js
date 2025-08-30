@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Available pages for permission management
 const availablePages = [
@@ -41,7 +41,7 @@ const availablePages = [
 ];
 
 // Get all users with their permission summary
-exports.getAllUsersPermissions = async (req, res) => {
+export const getAllUsersPermissions = async (req, res) => {
   try {
     const [users] = await pool.query(`
       SELECT u.user_id, u.username, u.system_role, u.status,
@@ -77,7 +77,7 @@ exports.getAllUsersPermissions = async (req, res) => {
 };
 
 // Get specific user permissions
-exports.getUserPermissions = async (req, res) => {
+export const getUserPermissions = async (req, res) => {
   const { userId } = req.params;
   
   try {
@@ -127,7 +127,7 @@ exports.getUserPermissions = async (req, res) => {
 };
 
 // Update user permissions
-exports.updateUserPermissions = async (req, res) => {
+export const updateUserPermissions = async (req, res) => {
   const { userId } = req.params;
   const { permissions } = req.body; // Array of {page_name, can_access}
 
@@ -157,7 +157,7 @@ exports.updateUserPermissions = async (req, res) => {
 };
 
 // Get current user's allowed pages (for frontend caching)
-exports.getCurrentUserPermissions = async (req, res) => {
+export const getCurrentUserPermissions = async (req, res) => {
   const userId = req.user.user_id;
   
   try {
@@ -176,7 +176,7 @@ exports.getCurrentUserPermissions = async (req, res) => {
 };
 
 // Check if user has access to a specific page
-exports.checkPageAccess = async (req, res) => {
+export const checkPageAccess = async (req, res) => {
   const { pageName } = req.params;
   const userId = req.user.user_id;
 
@@ -196,15 +196,6 @@ exports.checkPageAccess = async (req, res) => {
 };
 
 // Get available pages list
-exports.getAvailablePages = async (req, res) => {
+export const getAvailablePages = async (req, res) => {
   res.json(availablePages);
-};
-
-module.exports = {
-  getAllUsersPermissions: exports.getAllUsersPermissions,
-  getUserPermissions: exports.getUserPermissions,
-  updateUserPermissions: exports.updateUserPermissions,
-  getCurrentUserPermissions: exports.getCurrentUserPermissions,
-  checkPageAccess: exports.checkPageAccess,
-  getAvailablePages: exports.getAvailablePages
 }; 

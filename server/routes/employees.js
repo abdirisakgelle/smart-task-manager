@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const employeesController = require('../controllers/employeesController');
+import * as employeesController from '../controllers/employeesController.js';
 
 // Employee registration with auto-generated job title
 router.post('/register', employeesController.registerEmployee);
@@ -16,4 +16,4 @@ router.get('/:id', employeesController.getEmployeeById);
 router.put('/:id', employeesController.updateEmployee);
 router.delete('/:id', employeesController.deleteEmployee);
 
-module.exports = router; 
+export default router; 

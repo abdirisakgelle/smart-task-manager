@@ -5,8 +5,16 @@
 
 // Dynamic API URL generator that works across different environments
 export const getApiUrl = (endpoint) => {
-  // Always use relative URLs to leverage Vite's proxy in development
-  return `/api${endpoint}`;
+  // Check if we're in production and have a Railway API URL
+  const productionApiUrl = import.meta.env.VITE_API_URL;
+  
+  if (productionApiUrl && import.meta.env.PROD) {
+    // Production: use Railway backend URL
+    return `${productionApiUrl}/api${endpoint}`;
+  } else {
+    // Development: use relative URLs to leverage Vite's proxy
+    return `/api${endpoint}`;
+  }
 };
 
 // Centralized error handler

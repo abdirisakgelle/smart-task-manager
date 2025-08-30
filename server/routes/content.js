@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const contentController = require('../controllers/contentController');
+import * as contentController from '../controllers/contentController.js';
 
 // Filtered endpoints
 router.get('/script-status/:script_status', contentController.getContentByScriptStatus);
@@ -14,4 +14,4 @@ router.get('/:id', contentController.getContentById);
 router.put('/:id', contentController.updateContent);
 router.delete('/:id', contentController.deleteContent);
 
-module.exports = router; 
+export default router; 

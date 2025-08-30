@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const departmentsController = require('../controllers/departmentsController');
+import * as departmentsController from '../controllers/departmentsController.js';
 
 // Get all departments
 router.get('/', departmentsController.getAllDepartments);
@@ -17,4 +17,4 @@ router.put('/:id', departmentsController.updateDepartment);
 // Delete department
 router.delete('/:id', departmentsController.deleteDepartment);
 
-module.exports = router; 
+export default router; 

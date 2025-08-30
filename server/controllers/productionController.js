@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Create new production record
-exports.createProduction = async (req, res) => {
+export const createProduction = async (req, res) => {
   const { content_id, editor_id, production_status, completion_date, sent_to_social_team, notes } = req.body;
   if (!content_id || !editor_id || !production_status) {
     return res.status(400).json({ error: 'content_id, editor_id, and production_status are required.' });
@@ -26,7 +26,7 @@ exports.createProduction = async (req, res) => {
 };
 
 // Get all production records
-exports.getAllProduction = async (req, res) => {
+export const getAllProduction = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -47,7 +47,7 @@ exports.getAllProduction = async (req, res) => {
 };
 
 // Get production by ID
-exports.getProductionById = async (req, res) => {
+export const getProductionById = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM production WHERE production_id = ?',
@@ -61,7 +61,7 @@ exports.getProductionById = async (req, res) => {
 };
 
 // Update production by ID
-exports.updateProduction = async (req, res) => {
+export const updateProduction = async (req, res) => {
   const { content_id, editor_id, production_status, completion_date, sent_to_social_team, notes } = req.body;
   if (!content_id || !editor_id || !production_status) {
     return res.status(400).json({ error: 'content_id, editor_id, and production_status are required.' });
@@ -87,7 +87,7 @@ exports.updateProduction = async (req, res) => {
 };
 
 // Delete production by ID
-exports.deleteProduction = async (req, res) => {
+export const deleteProduction = async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM production WHERE production_id = ?',
@@ -101,7 +101,7 @@ exports.deleteProduction = async (req, res) => {
 };
 
 // Filtered endpoints
-exports.getProductionByStatus = async (req, res) => {
+export const getProductionByStatus = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM production WHERE production_status = ? ORDER BY production_id DESC',
@@ -113,7 +113,7 @@ exports.getProductionByStatus = async (req, res) => {
   }
 };
 
-exports.getProductionByEditor = async (req, res) => {
+export const getProductionByEditor = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM production WHERE editor_id = ? ORDER BY production_id DESC',
@@ -125,7 +125,7 @@ exports.getProductionByEditor = async (req, res) => {
   }
 };
 
-exports.getProductionByContent = async (req, res) => {
+export const getProductionByContent = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM production WHERE content_id = ? ORDER BY production_id DESC',
@@ -137,7 +137,7 @@ exports.getProductionByContent = async (req, res) => {
   }
 };
 
-exports.getProductionBySentToSocial = async (req, res) => {
+export const getProductionBySentToSocial = async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM production WHERE sent_to_social_team = ? ORDER BY production_id DESC',

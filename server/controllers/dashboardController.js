@@ -1,8 +1,8 @@
-const pool = require('../config/db');
-const moment = require('moment-timezone');
+import pool from '../config/db.js';
+import moment from 'moment-timezone';
 
 // Dashboard daily stats - simplified for today only
-exports.getDashboardStats = async (req, res) => {
+export const getDashboardStats = async (req, res) => {
   try {
     // Total tickets today
     const [tickets] = await pool.query(
@@ -40,7 +40,7 @@ exports.getDashboardStats = async (req, res) => {
 };
 
 // Admin KPIs for Call Center and Digital Media - Today's Performance Only
-exports.getAdminKPIs = async (req, res) => {
+export const getAdminKPIs = async (req, res) => {
   try {
     // 1. Tickets Today & Done Count
     const [ticketsToday] = await pool.query(`
@@ -230,7 +230,7 @@ exports.getAdminKPIs = async (req, res) => {
 };
 
 // Top Contributors This Week
-exports.getTopContributors = async (req, res) => {
+export const getTopContributors = async (req, res) => {
   try {
     // Get top 5 contributors for this week
     const [rows] = await pool.query(`
@@ -279,7 +279,7 @@ exports.getTopContributors = async (req, res) => {
 };
 
 // Top Complained Issues Today
-exports.getTopComplainedIssues = async (req, res) => {
+export const getTopComplainedIssues = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT issue_type, COUNT(*) AS issue_count
@@ -296,7 +296,7 @@ exports.getTopComplainedIssues = async (req, res) => {
 };
 
 // Ticket Resolution Overview for Today
-exports.getTicketResolutionOverview = async (req, res) => {
+export const getTicketResolutionOverview = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT resolution_status, COUNT(*) as count
@@ -311,7 +311,7 @@ exports.getTicketResolutionOverview = async (req, res) => {
 };
 
 // Weekly Ticket Trends (Grouped Bar Chart)
-exports.getWeeklyTicketTrends = async (req, res) => {
+export const getWeeklyTicketTrends = async (req, res) => {
   try {
     // Get the start of the current week (Saturday) in Africa/Mogadishu time
     const now = moment().tz('Africa/Mogadishu');
@@ -360,7 +360,7 @@ exports.getWeeklyTicketTrends = async (req, res) => {
 };
 
 // Daily Ticket Volume (Current Operational Week - Saturday to Friday)
-exports.getDailyTicketVolume = async (req, res) => {
+export const getDailyTicketVolume = async (req, res) => {
   try {
     // Use UTC for consistency - this matches how the database stores dates
     const now = moment.utc();
@@ -433,7 +433,7 @@ exports.getDailyTicketVolume = async (req, res) => {
 };
 
 // Simple Ticket Volume (Fallback - Last 7 days)
-exports.getSimpleTicketVolume = async (req, res) => {
+export const getSimpleTicketVolume = async (req, res) => {
   try {
     // Use the same logic as getDailyTicketVolume for consistency
     const [rows] = await pool.query(`
@@ -468,7 +468,7 @@ exports.getSimpleTicketVolume = async (req, res) => {
 };
 
 // All Ticket Volume (Last 7 days - Consistent with other endpoints)
-exports.getAllTicketVolume = async (req, res) => {
+export const getAllTicketVolume = async (req, res) => {
   try {
     // Use the same logic as getDailyTicketVolume for consistency
     const [rows] = await pool.query(`
@@ -503,7 +503,7 @@ exports.getAllTicketVolume = async (req, res) => {
 };
 
 // Ticket Volume by Issue Category (App vs IPTV) - Last 7 days
-exports.getTicketVolumeByCategory = async (req, res) => {
+export const getTicketVolumeByCategory = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -542,7 +542,7 @@ exports.getTicketVolumeByCategory = async (req, res) => {
 };
 
 // Ticket States (Open vs Closed based on end_time) - Today Only
-exports.getTicketStates = async (req, res) => {
+export const getTicketStates = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT
@@ -565,7 +565,7 @@ exports.getTicketStates = async (req, res) => {
 };
 
 // First Call Resolution (FCR) Rate for Today
-exports.getFcrRate = async (req, res) => {
+export const getFcrRate = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT
@@ -583,7 +583,7 @@ exports.getFcrRate = async (req, res) => {
 }; 
 
 // Test endpoint to create sample data for chart testing
-exports.createTestTickets = async (req, res) => {
+export const createTestTickets = async (req, res) => {
   try {
     // Insert test tickets for the last few days
     const testTickets = [
@@ -618,7 +618,7 @@ exports.createTestTickets = async (req, res) => {
 }; 
 
 // Debug endpoint to check tickets in database
-exports.debugTickets = async (req, res) => {
+export const debugTickets = async (req, res) => {
   try {
     const [allTickets] = await pool.query(`
       SELECT 
@@ -657,7 +657,7 @@ exports.debugTickets = async (req, res) => {
 }; 
 
 // Debug endpoint: Show current operational week range and all ticket days (Africa/Mogadishu)
-exports.getTicketVolumeDebug = async (req, res) => {
+export const getTicketVolumeDebug = async (req, res) => {
   try {
     const now = moment().tz('Africa/Mogadishu');
     let startOfWeek = now.clone().startOf('week').add(6, 'days'); // Saturday
@@ -693,7 +693,7 @@ exports.getTicketVolumeDebug = async (req, res) => {
 }; 
 
 // Test timezone conversion
-exports.testTimezoneConversion = async (req, res) => {
+export const testTimezoneConversion = async (req, res) => {
   try {
     // Test with a few sample dates
     const [testRows] = await pool.query(`
@@ -716,7 +716,7 @@ exports.testTimezoneConversion = async (req, res) => {
 }; 
 
 // Simple debug endpoint to see what's in the database
-exports.debugDatabase = async (req, res) => {
+export const debugDatabase = async (req, res) => {
   try {
     // Get current time in different timezones
     const nowUTC = moment.utc();
@@ -754,7 +754,7 @@ exports.debugDatabase = async (req, res) => {
 }; 
 
 // Comprehensive debug endpoint
-exports.debugAllDates = async (req, res) => {
+export const debugAllDates = async (req, res) => {
   try {
     // Get current time in UTC
     const now = moment.utc();
@@ -809,7 +809,7 @@ exports.debugAllDates = async (req, res) => {
 }; 
 
 // Recent Tickets Widget
-exports.getRecentTickets = async (req, res) => {
+export const getRecentTickets = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -842,7 +842,7 @@ exports.getRecentTickets = async (req, res) => {
 };
 
 // Ideas Produced Today Widget
-exports.getIdeasProducedToday = async (req, res) => {
+export const getIdeasProducedToday = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
@@ -877,7 +877,7 @@ exports.getIdeasProducedToday = async (req, res) => {
 // Role-based Dashboard Controllers
 
 // Admin Dashboard - Full system access with comprehensive metrics
-exports.getAdminDashboard = async (req, res) => {
+export const getAdminDashboard = async (req, res) => {
   try {
     // System Overview - Tickets
     const [tickets] = await pool.query(`
@@ -1255,7 +1255,7 @@ exports.getAdminDashboard = async (req, res) => {
 };
 
 // CEO Dashboard - High-level strategic view (read-only)
-exports.getCeoDashboard = async (req, res) => {
+export const getCeoDashboard = async (req, res) => {
   try {
     // CEO gets aggregated KPIs and read-only summaries
     const [tickets] = await pool.query(`
@@ -1302,7 +1302,7 @@ exports.getCeoDashboard = async (req, res) => {
 };
 
 // Section Manager Dashboard - Section-level access
-exports.getSectionManagerDashboard = async (req, res) => {
+export const getSectionManagerDashboard = async (req, res) => {
   try {
     const { sectionId } = req.dataScope;
     
@@ -1353,7 +1353,7 @@ exports.getSectionManagerDashboard = async (req, res) => {
 };
 
 // User Dashboard - Individual task views or section performance for managers
-exports.getUserDashboard = async (req, res) => {
+export const getUserDashboard = async (req, res) => {
   try {
     const { role, employeeId, sectionId } = req.dataScope;
     
@@ -1448,7 +1448,7 @@ exports.getUserDashboard = async (req, res) => {
 }; 
 
 // Agent Dashboard - Call center agent specific data
-exports.getAgentDashboard = async (req, res) => {
+export const getAgentDashboard = async (req, res) => {
   try {
     const { employeeId } = req.dataScope;
     
@@ -1516,7 +1516,7 @@ exports.getAgentDashboard = async (req, res) => {
 };
 
 // Content Dashboard - Content creator specific data
-exports.getContentDashboard = async (req, res) => {
+export const getContentDashboard = async (req, res) => {
   try {
     const { employeeId } = req.dataScope;
     
@@ -1636,7 +1636,7 @@ exports.getContentDashboard = async (req, res) => {
 };
 
 // Supervisor Dashboard - Team oversight data
-exports.getSupervisorDashboard = async (req, res) => {
+export const getSupervisorDashboard = async (req, res) => {
   try {
     const { employeeId } = req.dataScope;
     
@@ -1725,7 +1725,7 @@ exports.getSupervisorDashboard = async (req, res) => {
 };
 
 // Follow-up Dashboard - Customer satisfaction data
-exports.getFollowUpDashboard = async (req, res) => {
+export const getFollowUpDashboard = async (req, res) => {
   try {
     const { employeeId } = req.dataScope;
     
@@ -1809,7 +1809,7 @@ exports.getFollowUpDashboard = async (req, res) => {
 }; 
 
 // Generic Dashboard - Automatically routes to role-specific dashboard
-exports.getGenericDashboard = async (req, res) => {
+export const getGenericDashboard = async (req, res) => {
   try {
     const role = req.user?.system_role || req.dataScope?.systemRole || 'user';
     
